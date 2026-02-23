@@ -4,7 +4,7 @@
 [![React](https://img.shields.io/badge/React-19.2.1-61DAFB.svg)](https://reactjs.org/)
 [![C#](https://img.shields.io/badge/C%23-12.0-purple.svg)](https://docs.microsoft.com/en-us/dotnet/csharp/)
 [![SQL Server](https://img.shields.io/badge/SQL%20Server-2019+-red.svg)](https://www.microsoft.com/en-us/sql-server)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-Proprietary-red.svg)](LICENSE)
 
 ## 🎯 Overview
 
@@ -348,6 +348,18 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Support
 
 For support, email [support@aya-uis.com] or create an issue in the repository.
+
+---
+
+## 📄 License
+
+This project is proprietary software. All rights reserved.
+
+**Copyright (c) 2026 Youssef M. Roushdy. All Rights Reserved.**
+
+This repository is made available for **viewing purposes only**. No part of this software may be copied, modified, distributed, deployed, or used in any way without prior written permission from the owner.
+
+See the [LICENSE](LICENSE) file for full terms.
 
 ---
 

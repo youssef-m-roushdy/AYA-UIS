@@ -1,6 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FiFile, FiDownload, FiArrowLeft, FiClock, FiUser } from 'react-icons/fi';
+import {
+  FiFile,
+  FiDownload,
+  FiArrowLeft,
+  FiClock,
+  FiUser,
+} from 'react-icons/fi';
 import courseService from '../../services/courseService';
 import { toast } from 'react-toastify';
 
@@ -31,7 +37,12 @@ export default function CourseUploads() {
     load();
   }, [courseId]);
 
-  if (loading) return <div className="page-container"><div className="spinner" /></div>;
+  if (loading)
+    return (
+      <div className="page-container">
+        <div className="spinner" />
+      </div>
+    );
 
   const uploads = courseData?.uploads || [];
 
@@ -45,20 +56,35 @@ export default function CourseUploads() {
         >
           <FiArrowLeft /> Back
         </button>
-        <h1><FiFile style={{ marginRight: 8 }} />{courseData?.name || 'Course'} — Uploads</h1>
+        <h1>
+          <FiFile style={{ marginRight: 8 }} />
+          {courseData?.name || 'Course'} — Uploads
+        </h1>
         {courseData?.code && (
-          <p>{courseData.code} · {courseData.credits} Credits</p>
+          <p>
+            {courseData.code} · {courseData.credits} Credits
+          </p>
         )}
       </div>
 
       {/* Course Info Card */}
       {courseData && (
         <div className="card" style={{ marginBottom: 24 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16 }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+              gap: 16,
+            }}
+          >
             {courseData.name && (
               <div>
-                <small style={{ color: 'var(--text-light)' }}>Course Name</small>
-                <p><strong>{courseData.name}</strong></p>
+                <small style={{ color: 'var(--text-light)' }}>
+                  Course Name
+                </small>
+                <p>
+                  <strong>{courseData.name}</strong>
+                </p>
               </div>
             )}
             {courseData.code && (
@@ -75,7 +101,9 @@ export default function CourseUploads() {
             )}
             {courseData.description && (
               <div style={{ gridColumn: '1 / -1' }}>
-                <small style={{ color: 'var(--text-light)' }}>Description</small>
+                <small style={{ color: 'var(--text-light)' }}>
+                  Description
+                </small>
                 <p style={{ fontSize: '0.9rem' }}>{courseData.description}</p>
               </div>
             )}
@@ -94,34 +122,77 @@ export default function CourseUploads() {
           <p>No files have been uploaded for this course.</p>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 16 }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+            gap: 16,
+          }}
+        >
           {uploads.map(upload => {
-            const typeStyle = TYPE_COLORS[upload.type?.toLowerCase()] || { bg: '#f7fafc', color: 'var(--text-light)' };
+            const typeStyle = TYPE_COLORS[upload.type?.toLowerCase()] || {
+              bg: '#f7fafc',
+              color: 'var(--text-light)',
+            };
             return (
-              <div className="card" key={upload.id} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+              <div
+                className="card"
+                key={upload.id}
+                style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'start',
+                  }}
+                >
                   <div style={{ flex: 1 }}>
-                    <h4 style={{ fontSize: '0.95rem', marginBottom: 4 }}>{upload.title}</h4>
+                    <h4 style={{ fontSize: '0.95rem', marginBottom: 4 }}>
+                      {upload.title}
+                    </h4>
                     {upload.description && (
-                      <p style={{ fontSize: '0.83rem', color: 'var(--text-light)', lineHeight: 1.5 }}>
+                      <p
+                        style={{
+                          fontSize: '0.83rem',
+                          color: 'var(--text-light)',
+                          lineHeight: 1.5,
+                        }}
+                      >
                         {upload.description}
                       </p>
                     )}
                   </div>
                   <span
                     className="badge"
-                    style={{ background: typeStyle.bg, color: typeStyle.color, textTransform: 'capitalize' }}
+                    style={{
+                      background: typeStyle.bg,
+                      color: typeStyle.color,
+                      textTransform: 'capitalize',
+                    }}
                   >
                     {upload.type}
                   </span>
                 </div>
 
-                <div style={{ display: 'flex', gap: 16, fontSize: '0.8rem', color: 'var(--text-light)' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: 16,
+                    fontSize: '0.8rem',
+                    color: 'var(--text-light)',
+                  }}
+                >
+                  <span
+                    style={{ display: 'flex', alignItems: 'center', gap: 4 }}
+                  >
                     <FiUser size={13} /> {upload.uploadedBy || 'Unknown'}
                   </span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <FiClock size={13} /> {new Date(upload.uploadedAt).toLocaleDateString()}
+                  <span
+                    style={{ display: 'flex', alignItems: 'center', gap: 4 }}
+                  >
+                    <FiClock size={13} />{' '}
+                    {new Date(upload.uploadedAt).toLocaleDateString()}
                   </span>
                 </div>
 
