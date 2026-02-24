@@ -20,7 +20,6 @@ import StudyYearFees from './pages/admin/StudyYearFees';
 import Fees from './pages/fees/Fees';
 import Schedules from './pages/schedules/Schedules';
 import MyCourses from './pages/student/MyCourses';
-import RegisterCourses from './pages/student/RegisterCourses';
 import Timeline from './pages/student/Timeline';
 import Profile from './pages/student/Profile';
 import MyStudyYears from './pages/student/MyStudyYears';
@@ -151,14 +150,6 @@ function App() {
               element={
                 <ProtectedRoute roles={['Student']}>
                   <MyCourses />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="student/register"
-              element={
-                <ProtectedRoute roles={['Student']}>
-                  <RegisterCourses />
                 </ProtectedRoute>
               }
             />

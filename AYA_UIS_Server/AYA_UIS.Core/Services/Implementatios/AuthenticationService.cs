@@ -76,7 +76,8 @@ namespace AYA_UIS.Core.Services.Implementations
                     PhoneNumber = user.PhoneNumber,
                     DepartmentName = null, // // null he is not student,
                     Gender = user.Gender,
-                    DepartmentId = null
+                    DepartmentId = null,
+                    ProfilePicture = user.ProfilePicture
                 };
             }
 
@@ -98,7 +99,8 @@ namespace AYA_UIS.Core.Services.Implementations
                 PhoneNumber = user.PhoneNumber,
                 DepartmentName = department.Name,
                 Gender = user.Gender,
-                DepartmentId = department.Id
+                DepartmentId = department.Id,
+                ProfilePicture = user.ProfilePicture
             };
         }
         #endregion
@@ -168,7 +170,8 @@ namespace AYA_UIS.Core.Services.Implementations
                 Level = user.Level, // null he is not student
                 PhoneNumber = user.PhoneNumber,
                 DepartmentName = null,// // null he is not student
-                DepartmentId = user.DepartmentId          
+                DepartmentId = user.DepartmentId,
+                ProfilePicture = user.ProfilePicture          
             };
         }
 

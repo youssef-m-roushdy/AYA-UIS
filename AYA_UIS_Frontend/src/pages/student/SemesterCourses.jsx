@@ -160,8 +160,6 @@ function RegisterTab({ studyYearId, semesterId, registeredCourses }) {
   const [openCourses, setOpenCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [registering, setRegistering] = useState(null); // courseId in-flight
-  const [reasonMap, setReasonMap] = useState({}); // courseId → reason string
-  const [reasonOpen, setReasonOpen] = useState(null); // courseId whose textarea is shown
   // local set so the UI flips immediately after success without refetch delay
   const [localRegistered, setLocalRegistered] = useState(new Set());
 
@@ -197,19 +195,25 @@ function RegisterTab({ studyYearId, semesterId, registeredCourses }) {
   const handleRegister = async courseId => {
     setRegistering(courseId);
     try {
-      await api.post('/Registration', {
-        courseId,
-        studyYearId: Number(studyYearId),
-        semesterId: Number(semesterId),
-        reason: reasonMap[courseId] || '',
-      });
-      toast.success('Registration request submitted!');
+      // Prepare registration data
+      const registrationData = {
+        courseId: courseId,
+        studyYearId: parseInt(studyYearId),
+        semesterId: parseInt(semesterId),
+        reason: '', // Empty reason as default
+      };
+
+      await registrationService.register(registrationData);
+
+      toast.success('Registration request submitted successfully!');
       setLocalRegistered(prev => new Set([...prev, courseId]));
-      setReasonOpen(null);
-      setReasonMap(prev => ({ ...prev, [courseId]: '' }));
     } catch (e) {
+      console.log(e?.ErrorMessage);
       toast.error(
-        e?.response?.data?.message || 'Failed to submit registration'
+        e?.ErrorMessage ||
+          e?.response?.data?.message ||
+          e?.errorMessage ||
+          'Failed to submit registration'
       );
     }
     setRegistering(null);
@@ -252,7 +256,6 @@ function RegisterTab({ studyYearId, semesterId, registeredCourses }) {
       {openCourses.map(course => {
         const alreadyRegistered = alreadyRegisteredIds.has(course.id);
         const isRegistering = registering === course.id;
-        const showReason = reasonOpen === course.id;
 
         return (
           <div
@@ -307,72 +310,36 @@ function RegisterTab({ studyYearId, semesterId, registeredCourses }) {
               )}
             </div>
 
-            {/* Reason textarea */}
-            {showReason && !alreadyRegistered && (
-              <textarea
-                placeholder="Reason for registering (optional)"
-                value={reasonMap[course.id] || ''}
-                onChange={e =>
-                  setReasonMap(prev => ({
-                    ...prev,
-                    [course.id]: e.target.value,
-                  }))
-                }
-                rows={2}
+            {/* Register button */}
+            {!alreadyRegistered && (
+              <button
+                className="btn btn-primary"
                 style={{
                   width: '100%',
-                  padding: '8px 10px',
-                  borderRadius: 8,
-                  border: '1px solid var(--border)',
-                  fontSize: '0.85rem',
-                  resize: 'vertical',
-                  fontFamily: 'inherit',
-                  background: 'var(--bg, #f9f9f9)',
-                  boxSizing: 'border-box',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  padding: '10px',
                 }}
-              />
-            )}
-
-            {/* Actions */}
-            {!alreadyRegistered && (
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button
-                  className="btn btn-ghost btn-sm"
-                  style={{ flexShrink: 0 }}
-                  onClick={() => {
-                    setReasonOpen(showReason ? null : course.id);
-                  }}
-                >
-                  {showReason ? 'Hide' : 'Add Reason'}
-                </button>
-                <button
-                  className="btn btn-primary btn-sm"
-                  style={{
-                    flex: 1,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 6,
-                  }}
-                  disabled={isRegistering}
-                  onClick={() => handleRegister(course.id)}
-                >
-                  {isRegistering ? (
-                    <>
-                      <span
-                        className="spinner"
-                        style={{ width: 14, height: 14 }}
-                      />
-                      Registering…
-                    </>
-                  ) : (
-                    <>
-                      <FiPlus size={14} />
-                      Register
-                    </>
-                  )}
-                </button>
-              </div>
+                disabled={isRegistering}
+                onClick={() => handleRegister(course.id)}
+              >
+                {isRegistering ? (
+                  <>
+                    <span
+                      className="spinner"
+                      style={{ width: 16, height: 16 }}
+                    />
+                    Registering...
+                  </>
+                ) : (
+                  <>
+                    <FiPlus size={16} />
+                    Register for this Course
+                  </>
+                )}
+              </button>
             )}
           </div>
         );

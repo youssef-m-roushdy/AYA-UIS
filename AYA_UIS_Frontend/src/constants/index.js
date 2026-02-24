@@ -34,7 +34,8 @@ export const API_ENDPOINTS = {
     DEPT_COURSES: deptId => `${API_BASE}/Course/department/${deptId}`,
     PREREQUISITES: id => `${API_BASE}/Course/prequisites/${id}`,
     DEPENDENCIES: id => `${API_BASE}/Course/dependencies/${id}`,
-    OPEN_BY_DEPT: deptId => `${API_BASE}/Course/open/department/${deptId}`, // ← ADD
+    OPEN_BY_DEPT: deptId => `${API_BASE}/Course/open/department/${deptId}`,
+    STATUS: `${API_BASE}/Course/status`,
   },
   REGISTRATIONS: {
     BASE: `${API_BASE}/Registration`,

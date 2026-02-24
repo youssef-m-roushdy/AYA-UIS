@@ -9,6 +9,7 @@ using AYA_UIS.Application.Queries.CoursePrequisites;
 using AYA_UIS.Application.Queries.Courses;
 using AYA_UIS.Application.Queries.Registrations;
 using AYA_UIS.Core.Domain.Enums;
+using AYA_UIS.Core.Domain.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -39,9 +40,9 @@ namespace Presentation.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] CourseQuery query)
         {
-            var result = await _mediator.Send(new GetAllCoursesQuery());
+            var result = await _mediator.Send(new GetAllCoursesQuery(query));
             //return CreatedAtAction(nameof(GetById), new { id = result.Data?.Id }, result);
             return Ok(result);
         }
@@ -87,13 +88,13 @@ namespace Presentation.Controllers
 
         [Authorize]
         [HttpGet("department/{departmentId}")]
-        public async Task<IActionResult> DeparmentCourses(int departmentId)
+        public async Task<IActionResult> DeparmentCourses(int departmentId, [FromQuery] DepartmentCourseQuery query)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
 
-            var result = await _mediator.Send(new GetDepartmentCoursesQuery(departmentId));
+            var result = await _mediator.Send(new GetDepartmentCoursesQuery(departmentId, query));
             return Ok(result);
         }
      
@@ -121,6 +122,13 @@ namespace Presentation.Controllers
             return Ok(result);
         }
 
+        [Authorize(Roles = "Admin")]
+        [HttpPatch("status")]
+        public async Task<IActionResult> UpdateCourseStatus([FromBody] UpdateCourseStatusDto updateCourseStatusDto)
+        {
+            var result = await _mediator.Send(new UpdateCourseStatusCommand(updateCourseStatusDto));
+            return Ok(result);
+        }
 
     }
 }

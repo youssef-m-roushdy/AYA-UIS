@@ -62,11 +62,6 @@ export default function Layout() {
   const studentNav = [
     { to: ROUTES.DASHBOARD, icon: <FiHome />, label: 'Dashboard' },
     { to: ROUTES.STUDENT.MY_COURSES, icon: <FiBook />, label: 'My Courses' },
-    {
-      to: ROUTES.STUDENT.REGISTER_COURSES,
-      icon: <FiClipboard />,
-      label: 'Registration',
-    },
     { to: ROUTES.STUDENT.MY_TIMELINE, icon: <FiLayers />, label: 'Timeline' },
     {
       to: ROUTES.STUDENT.MY_STUDY_YEARS,

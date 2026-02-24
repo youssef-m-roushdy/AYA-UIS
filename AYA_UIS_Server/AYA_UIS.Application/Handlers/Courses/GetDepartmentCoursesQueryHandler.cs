@@ -27,7 +27,7 @@ namespace AYA_UIS.Application.Handlers.Courses
             if (department == null)            {
                 throw new Exception("Department not found");
             }
-            var courses = await _unitOfWork.Courses.GetDepartmentCoursesAsync(request.DepartmentId);
+            var courses = await _unitOfWork.Courses.GetDepartmentCoursesAsync(request.DepartmentId, request.Query);
             return _mapper.Map<IEnumerable<CourseDto>>(courses);
         }
     }

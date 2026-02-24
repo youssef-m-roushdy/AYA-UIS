@@ -23,7 +23,7 @@ namespace AYA_UIS.Application.Handlers.Courses
         }
         public async Task<Response<IEnumerable<CourseDto>>> Handle(GetAllCoursesQuery request, CancellationToken cancellationToken)
         {
-            var courses = await _unitOfWork.Courses.GetAllAsync();
+            var courses = await _unitOfWork.Courses.GetFilteredCoursesAsync(request.Query);
             var result = _mapper.Map<IEnumerable<CourseDto>>(courses);
             return Response<IEnumerable<CourseDto>>.SuccessResponse(result);
         }
