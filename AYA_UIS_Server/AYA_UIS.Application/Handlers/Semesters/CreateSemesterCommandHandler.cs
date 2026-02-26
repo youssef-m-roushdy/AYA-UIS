@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AYA_UIS.Application.Commands.Semesters;
-using AYA_UIS.Core.Domain.Entities.Models;
-using Domain.Contracts;
+using AYA_UIS.Domain.Contracts;
+using AYA_UIS.Domain.Entities.Models;
 using MediatR;
 
 namespace AYA_UIS.Application.Handlers.Semesters

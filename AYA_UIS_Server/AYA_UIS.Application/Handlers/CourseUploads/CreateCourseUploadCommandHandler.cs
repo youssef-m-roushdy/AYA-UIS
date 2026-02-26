@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 using AutoMapper;
 using AYA_UIS.Application.Commands.CourseUploads;
 using AYA_UIS.Application.Contracts;
-using AYA_UIS.Core.Domain.Entities.Models;
-using Domain.Contracts;
+using AYA_UIS.Domain.Contracts;
+using AYA_UIS.Domain.Entities.Models;
 using MediatR;
 using Shared.Respones;
 

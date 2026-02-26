@@ -1,13 +1,14 @@
 using AutoMapper;
-using AYA_UIS.Core.Domain.Entities.Models;
-using Shared.Dtos.Info_Module.AcademicSheduleDtos;
-using Shared.Dtos.Info_Module.CourseDtos;
-using Shared.Dtos.Info_Module.CourseUploadDtos;
-using Shared.Dtos.Info_Module.DepartmentDtos;
-using Shared.Dtos.Info_Module.FeeDtos;
-using Shared.Dtos.Info_Module.RegistrationDtos;
-using Shared.Dtos.Info_Module.StudyYearDtos;
-using Shared.Dtos.Info_Module.UserStudyYearDtos;
+using AYA_UIS.Application.Dtos.AcademicSheduleDtos;
+using AYA_UIS.Application.Dtos.CourseDtos;
+using AYA_UIS.Application.Dtos.CourseUploadDtos;
+using AYA_UIS.Application.Dtos.DepartmentDtos;
+using AYA_UIS.Application.Dtos.DepartmentDtos.FeeDtos;
+using AYA_UIS.Application.Dtos.RegistrationDtos;
+using AYA_UIS.Application.Dtos.StudyYearDtos;
+using AYA_UIS.Application.Dtos.UserStudyYearDtos;
+using AYA_UIS.Domain.Entities.Models;
+
 
 namespace AYA_UIS.Application.Mapping
 {

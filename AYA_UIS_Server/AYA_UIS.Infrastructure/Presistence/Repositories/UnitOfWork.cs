@@ -4,11 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AYA_UIS.Core.Domain.Entities;
-using Domain.Contracts;
+using AYA_UIS.Domain.Contracts;
+using AYA_UIS.Domain.Entities;
 using Presistence;
 
-namespace Presistence.Repositories
+namespace AYA_UIS.Infrastructure.Presistence.Repositories
 {
     public class UnitOfWork : IUnitOfWork
     {

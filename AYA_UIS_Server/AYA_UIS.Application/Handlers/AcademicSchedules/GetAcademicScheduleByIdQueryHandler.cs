@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AYA_UIS.Application.Dtos.AcademicSheduleDtos;
 using AYA_UIS.Application.Queries.AcademicSchedules;
+using AYA_UIS.Domain.Contracts;
 using AYA_UIS.Shared.Exceptions;
-using Domain.Contracts;
 using MediatR;
-using Shared.Dtos.Info_Module.AcademicSheduleDtos;
 
 namespace AYA_UIS.Application.Handlers.AcademicSchedules
 {

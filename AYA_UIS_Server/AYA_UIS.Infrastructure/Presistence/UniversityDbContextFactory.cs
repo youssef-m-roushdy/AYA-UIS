@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
-namespace Presistence
+namespace AYA_UIS.Infrastructure.Presistence
 {
     public class UniversityDbContextFactory : IDesignTimeDbContextFactory<UniversityDbContext>
     {

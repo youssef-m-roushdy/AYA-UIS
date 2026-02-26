@@ -4,7 +4,7 @@ using AYA_UIS.Application.Contracts;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 
-namespace Infrastructure.Services;
+namespace AYA_UIS.Infrastructure.Presistence.Services;
 
 public class CloudinarySettings
 {

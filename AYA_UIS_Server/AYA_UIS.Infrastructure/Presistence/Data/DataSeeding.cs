@@ -1,11 +1,11 @@
-﻿using AYA_UIS.Core.Domain.Entities.Identity;
-using AYA_UIS.Core.Domain.Entities.Models;
-using Domain.Contracts;
+﻿using AYA_UIS.Domain.Entities.Identity;
+using AYA_UIS.Domain.Entities.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Presistence;
-using Shared.Dtos.Auth_Module;
-using AYA_UIS.Core.Domain.Enums;
+using AYA_UIS.Domain.Enums;
+using AYA_UIS.Infrastructure.Presistence;
+using AYA_UIS.Domain.Contracts;
 
 public class DataSeeding : IDataSeeding
 {

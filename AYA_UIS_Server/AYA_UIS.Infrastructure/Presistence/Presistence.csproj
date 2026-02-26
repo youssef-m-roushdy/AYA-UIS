@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <RootNamespace>AYA_UIS.Infrastructure.Presistence</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,8 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\AYA_UIS.Core\Domain\Domain.csproj" />
-    <ProjectReference Include="..\..\AYA_UIS.Core\Services\Services.csproj" />
+    <ProjectReference Include="..\..\AYA_UIS.Domain\AYA_UIS.Domain.csproj" />
     <ProjectReference Include="..\..\AYA_UIS.Application\AYA_UIS.Application.csproj" />
     <ProjectReference Include="..\..\Shared\Shared.csproj" />
   </ItemGroup>

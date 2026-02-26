@@ -5,14 +5,14 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using AYA_UIS.Application.Commands.AcademicSchedules;
+using AYA_UIS.Application.Dtos.AcademicSheduleDtos;
 using AYA_UIS.Application.Queries.AcademicSchedules;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Shared.Dtos.Info_Module.AcademicSheduleDtos;
 
-namespace Presentation.Controllers
+namespace AYA_UIS.Infrastructure.Presentation.Controllers
 {
 
     [ApiController]

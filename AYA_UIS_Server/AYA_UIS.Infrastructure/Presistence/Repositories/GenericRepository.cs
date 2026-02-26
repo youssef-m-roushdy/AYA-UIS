@@ -4,12 +4,12 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
-using AYA_UIS.Core.Domain.Entities;
-using Domain.Contracts;
+using AYA_UIS.Domain.Contracts;
+using AYA_UIS.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Presistence;
 
-namespace Presistence.Repositories
+namespace AYA_UIS.Infrastructure.Presistence.Repositories
 {
     public class GenericRepository<TEntity, TKey> : IGenericRepository<TEntity, TKey>
         where TEntity : BaseEntities<TKey>

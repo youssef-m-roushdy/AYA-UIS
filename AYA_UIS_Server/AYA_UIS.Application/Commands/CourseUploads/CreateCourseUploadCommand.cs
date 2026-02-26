@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AYA_UIS.Application.Dtos.CourseUploadDtos;
 using MediatR;
 using Microsoft.AspNetCore.Http;
-using Shared.Dtos.Info_Module.CourseUploadDtos;
 using Shared.Respones;
 
 namespace AYA_UIS.Application.Commands.CourseUploads

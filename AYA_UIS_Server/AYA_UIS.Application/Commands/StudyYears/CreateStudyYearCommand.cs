@@ -2,9 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AYA_UIS.Application.Dtos.StudyYearDtos;
 using MediatR;
-using Shared.Dtos.Info_Module.StudyYearDtos;
-using Shared.Dtos.Info_Module.UserStudyYearDtos;
 
 namespace AYA_UIS.Application.Commands.StudyYears
 {

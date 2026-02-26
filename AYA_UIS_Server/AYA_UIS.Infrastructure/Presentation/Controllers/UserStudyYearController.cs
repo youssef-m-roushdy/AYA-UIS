@@ -1,12 +1,12 @@
 using System.Security.Claims;
 using AYA_UIS.Application.Commands.UserStudyYears;
+using AYA_UIS.Application.Dtos.UserStudyYearDtos;
 using AYA_UIS.Application.Queries.UserStudyYears;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Shared.Dtos.Info_Module.UserStudyYearDtos;
 
-namespace Presentation.Controllers
+namespace AYA_UIS.Infrastructure.Presentation.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

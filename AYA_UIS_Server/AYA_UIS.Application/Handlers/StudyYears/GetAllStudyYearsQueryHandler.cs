@@ -1,7 +1,7 @@
+using AYA_UIS.Application.Dtos.StudyYearDtos;
 using AYA_UIS.Application.Queries.StudyYears;
-using Domain.Contracts;
+using AYA_UIS.Domain.Contracts;
 using MediatR;
-using Shared.Dtos.Info_Module.StudyYearDtos;
 
 namespace AYA_UIS.Application.Handlers.StudyYears;
 

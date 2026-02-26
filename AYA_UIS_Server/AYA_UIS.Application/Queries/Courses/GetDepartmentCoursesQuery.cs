@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AYA_UIS.Core.Domain.Queries;
+using AYA_UIS.Application.Dtos.CourseDtos;
+using AYA_UIS.Domain.Queries;
 using MediatR;
-using Shared.Dtos.Info_Module.CourseDtos;
 
 namespace AYA_UIS.Application.Queries.Courses
 {

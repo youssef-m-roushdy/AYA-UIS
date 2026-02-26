@@ -3,17 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AYA_UIS.Application.Commands.Registrations;
-using AYA_UIS.Core.Domain.Entities.Identity;
-using AYA_UIS.Core.Domain.Entities.Models;
-using AYA_UIS.Core.Domain.Enums;
+using AYA_UIS.Domain.Entities.Identity;
+using AYA_UIS.Domain.Entities.Models;
+using AYA_UIS.Domain.Enums;
 using AYA_UIS.Shared.Exceptions;
-using Domain.Contracts;
 using Microsoft.EntityFrameworkCore;
 using MediatR;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
-using Shared.Dtos.Info_Module.RegistrationDtos;
 using Shared.Respones;
+using AYA_UIS.Domain.Contracts;
 
 namespace AYA_UIS.Application.Handlers.Registrations
 {

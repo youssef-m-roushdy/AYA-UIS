@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AYA_UIS.Application.Dtos.CourseDtos;
+using AYA_UIS.Application.Dtos.CourseUploadDtos;
 using AYA_UIS.Application.Queries.Courses;
-using AYA_UIS.Core.Domain.Entities.Identity;
-using Domain.Contracts;
+using AYA_UIS.Domain.Contracts;
+using AYA_UIS.Domain.Entities.Identity;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
-using Shared.Dtos.Info_Module.CourseDtos;
 using Shared.Respones;
-using Shared.Dtos.Info_Module.CourseUploadDtos;
 
 namespace AYA_UIS.Application.Handlers.Courses
 {

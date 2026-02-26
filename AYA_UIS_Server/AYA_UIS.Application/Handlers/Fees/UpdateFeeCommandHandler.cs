@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AYA_UIS.Application.Commands.Fees;
+using AYA_UIS.Domain.Contracts;
 using AYA_UIS.Shared.Exceptions;
-using Domain.Contracts;
 using MediatR;
 
 namespace AYA_UIS.Application.Handlers.Fees

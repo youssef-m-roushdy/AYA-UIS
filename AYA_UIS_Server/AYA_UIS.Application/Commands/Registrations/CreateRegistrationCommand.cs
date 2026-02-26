@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AYA_UIS.Application.Dtos.RegistrationDtos;
 using MediatR;
-using Shared.Dtos.Info_Module.RegistrationDtos;
 using Shared.Respones;
 
 namespace AYA_UIS.Application.Commands.Registrations

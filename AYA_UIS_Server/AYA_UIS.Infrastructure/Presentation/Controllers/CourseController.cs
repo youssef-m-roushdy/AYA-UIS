@@ -5,19 +5,19 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using AYA_UIS.Application.Commands.Courses;
 using AYA_UIS.Application.Commands.CourseUploads;
+using AYA_UIS.Application.Dtos.CourseDtos;
+using AYA_UIS.Application.Dtos.CourseUploadDtos;
 using AYA_UIS.Application.Queries.CoursePrequisites;
 using AYA_UIS.Application.Queries.Courses;
 using AYA_UIS.Application.Queries.Registrations;
-using AYA_UIS.Core.Domain.Enums;
-using AYA_UIS.Core.Domain.Queries;
+using AYA_UIS.Domain.Enums;
+using AYA_UIS.Domain.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Shared.Dtos.Info_Module.CourseDtos;
-using Shared.Dtos.Info_Module.CourseUploadDtos;
 
-namespace Presentation.Controllers
+namespace AYA_UIS.Infrastructure.Presentation.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

@@ -7,9 +7,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
-using Shared.Dtos.Info_Module.UserDtos;
+using AYA_UIS.Application.Dtos.UserDtos;
+using AYA_UIS.Domain.Queries;
 
-namespace Presentation.Controllers
+namespace AYA_UIS.Infrastructure.Presentation.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -50,6 +51,14 @@ namespace Presentation.Controllers
                 return Unauthorized();
             
             await _serviceManager.UserService.UpdateStudentSpecializationAsync(userId, updateStudentSpecializationDto);
+            return NoContent();
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet]
+        public async Task<IActionResult> GetAll([FromQuery]UserQueries queries)
+        {
+            await _serviceManager.UserService.GetAllUsers(queries);
             return NoContent();
         }
 

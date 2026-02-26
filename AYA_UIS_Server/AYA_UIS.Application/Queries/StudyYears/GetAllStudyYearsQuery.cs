@@ -1,5 +1,5 @@
+using AYA_UIS.Application.Dtos.StudyYearDtos;
 using MediatR;
-using Shared.Dtos.Info_Module.StudyYearDtos;
 
 namespace AYA_UIS.Application.Queries.StudyYears;
 

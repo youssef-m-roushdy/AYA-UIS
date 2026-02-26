@@ -1,5 +1,5 @@
+using AYA_UIS.Application.Dtos.AuthDtos;
 using Microsoft.AspNetCore.Identity;
-using Shared.Dtos.Auth_Module;
 
 namespace AYA_UIS.Application.Contracts
 {

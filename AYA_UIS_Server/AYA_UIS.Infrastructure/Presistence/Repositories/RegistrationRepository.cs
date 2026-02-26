@@ -1,10 +1,10 @@
-using AYA_UIS.Core.Domain.Entities.Models;
-using AYA_UIS.Core.Domain.Enums;
-using Domain.Contracts;
+using AYA_UIS.Domain.Contracts;
+using AYA_UIS.Domain.Entities.Models;
+using AYA_UIS.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Presistence;
 
-namespace Presistence.Repositories
+namespace AYA_UIS.Infrastructure.Presistence.Repositories
 {
     public class RegistrationRepository : GenericRepository<Registration, int>, IRegistrationRepository
     {

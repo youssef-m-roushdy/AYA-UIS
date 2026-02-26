@@ -1,12 +1,12 @@
-using AYA_UIS.Core.Domain.Entities.Models;
-using AYA_UIS.Core.Domain.Enums;
-using AYA_UIS.Core.Domain.Queries;
+using AYA_UIS.Domain.Contracts;
+using AYA_UIS.Domain.Entities.Models;
+using AYA_UIS.Domain.Enums;
+using AYA_UIS.Domain.Queries;
 using AYA_UIS.Shared.Exceptions;
-using Domain.Contracts;
 using Microsoft.EntityFrameworkCore;
 using Presistence;
 
-namespace Presistence.Repositories
+namespace AYA_UIS.Infrastructure.Presistence.Repositories
 {
     public class CourseRepository : GenericRepository<Course, int>, ICourseRepository
     {
@@ -16,29 +16,26 @@ namespace Presistence.Repositories
 
         public async Task<IEnumerable<Course>> GetFilteredCoursesAsync(CourseQuery query)
         {
-            var courses = await _dbContext.Courses
+            // Start with IQueryable - NO ToListAsync() yet!
+            var courses = _dbContext.Courses
                 .AsNoTracking()
-                .ToListAsync();
-            if (courses == null || !courses.Any())
-                return null;
+                .AsQueryable(); // This is IQueryable
 
-            var filteredCourses = courses.Where(course =>
-            {
-                if (query.Status.HasValue && course.Status != query.Status.Value)
-                    return false;
+            // Build the query - these become SQL WHERE clauses
+            if (query.Status.HasValue)
+                courses = courses.Where(c => c.Status == query.Status.Value);
 
-                if (!string.IsNullOrEmpty(query.Code) && !course.Code.Contains(query.Code, StringComparison.OrdinalIgnoreCase))
-                    return false;
+            if (!string.IsNullOrEmpty(query.Code))
+                courses = courses.Where(c => c.Code.Contains(query.Code));
 
-                if (!string.IsNullOrEmpty(query.Name) && !course.Name.Contains(query.Name, StringComparison.OrdinalIgnoreCase))
-                    return false;
+            if (!string.IsNullOrEmpty(query.Name))
+                courses = courses.Where(c => c.Name.Contains(query.Name));
 
-                if (query.DepartmentId.HasValue && course.DepartmentId != query.DepartmentId.Value)
-                    return false;
+            if (query.DepartmentId.HasValue)
+                courses = courses.Where(c => c.DepartmentId == query.DepartmentId.Value);
 
-                return true;
-            });
-            return filteredCourses.ToList();
+            // ONLY NOW execute the query against the database
+            return await courses.ToListAsync();
         }
         public async Task<Course?> GetCourseUplaodsAsync(int id)
         {
@@ -51,12 +48,11 @@ namespace Presistence.Repositories
         {
             var queryable = _dbContext.Courses
                 .Where(c => c.DepartmentId == departmentId)
-                .AsNoTracking();
+                .AsNoTracking()
+                .AsQueryable();
 
             if (query.Status.HasValue)
-            {
                 queryable = queryable.Where(c => c.Status == query.Status.Value);
-            }
 
             return queryable.ToListAsync()
                 .ContinueWith(t => t.Result.AsEnumerable());

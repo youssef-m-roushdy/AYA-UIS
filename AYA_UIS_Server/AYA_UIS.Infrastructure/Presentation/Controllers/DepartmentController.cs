@@ -1,11 +1,11 @@
 using AYA_UIS.Application.Commands.Departments;
+using AYA_UIS.Application.Dtos.DepartmentDtos;
 using AYA_UIS.Application.Queries.Departments;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Shared.Dtos.Info_Module.DepartmentDtos;
 
-namespace Presentation.Controllers
+namespace AYA_UIS.Infrastructure.Presentation.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -45,7 +45,7 @@ namespace Presentation.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([FromBody] CreateDepartmentDto department)
         {
-            var result = await _mediator.Send(new CreateDepartmentCommand { Department = department });
+            var result = await _mediator.Send(new CreateDepartmentCommand(department));
             return CreatedAtAction(nameof(GetById), new { id = result.Data?.Id }, result);
         }
 

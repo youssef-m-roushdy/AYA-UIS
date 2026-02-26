@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AYA_UIS.Application.Contracts;
-using AYA_UIS.Core.Domain.Entities.Models;
-using AYA_UIS.Core.Domain.Enums;
+using AYA_UIS.Domain.Entities.Models;
+using AYA_UIS.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Presistence;
 
-namespace Infrastructure.Services
+namespace AYA_UIS.Infrastructure.Presistence.Services
 {
     public class GpaCalculationService : IGpaCalculationService
     {

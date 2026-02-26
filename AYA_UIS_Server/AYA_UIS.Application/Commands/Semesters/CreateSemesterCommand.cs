@@ -2,9 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AYA_UIS.Application.Dtos.SemesterDtos;
 using MediatR;
-using Shared.Dtos.Info_Module.AcademicSheduleDtos;
-using Shared.Dtos.Info_Module.SemesterDtos;
 
 namespace AYA_UIS.Application.Commands.Semesters
 {

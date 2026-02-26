@@ -1,5 +1,5 @@
 ﻿using AYA_UIS.Shared.Exceptions;
-using Shared.Dtos.ErrorModels;
+using System.Text.Json;
 
 namespace AYA_UIS.MiddelWares
 {
@@ -19,73 +19,84 @@ namespace AYA_UIS.MiddelWares
             try
             {
                 await _next(context);
-                if (context.Response.StatusCode == StatusCodes.Status404NotFound)
-                    await HandelExceptionAsync(context );
+                
+                // Handle 404 after the pipeline executes
+                if (context.Response.StatusCode == StatusCodes.Status404NotFound && !context.Response.HasStarted)
+                {
+                    await HandleNotFoundExceptionAsync(context);
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Somthing Went Wrong {ex.Message}");
-                await HandelErrorExceptAsync(context, ex);
-
+                _logger.LogError(ex, $"Something Went Wrong: {ex.Message}");
+                
+                if (!context.Response.HasStarted)
+                {
+                    await HandleErrorExceptAsync(context, ex);
+                }
             }
-
-
-
         }
 
-
-        private async Task HandelExceptionAsync(HttpContext content)
+        private async Task HandleNotFoundExceptionAsync(HttpContext context)
         {
-            content.Request.ContentType = "application/json";
+            context.Response.ContentType = "application/json";
+            
             var response = new ErrorDetails()
             {
                 StatusCode = StatusCodes.Status404NotFound,
-                ErrorMessage = $"The end Point {content.Request.Path} Not Found "
-            }.ToString();
-
-            await content.Response.WriteAsync(response);
-        }
-
-        private async Task HandelErrorExceptAsync(HttpContext content, Exception ex)
-        {
-            content.Response.ContentType = "application/json";
-
-            //3]Write response in body 
-            var response = new ErrorDetails
-            {
-
-                ErrorMessage = ex.Message
-
+                ErrorMessage = $"The endpoint '{context.Request.Path}' was not found"
             };
 
-            //1] Change StatusCode 
-            content.Response.StatusCode = ex switch
+            var jsonResponse = JsonSerializer.Serialize(response);
+            await context.Response.WriteAsync(jsonResponse);
+        }
+
+        private async Task HandleErrorExceptAsync(HttpContext context, Exception ex)
+        {
+            context.Response.ContentType = "application/json";
+
+            var response = new ErrorDetails
             {
-                ValidationException validationException => HandelValidationException(validationException, response),
+                ErrorMessage = ex.Message
+            };
+
+            // Set status code based on exception type
+            context.Response.StatusCode = ex switch
+            {
+                ValidationException => HandleValidationException((ValidationException)ex, response),
                 UnauthorizedException => StatusCodes.Status401Unauthorized,
                 ForbiddenException => StatusCodes.Status403Forbidden,
                 NotFoundException => StatusCodes.Status404NotFound,
                 BadRequestException => StatusCodes.Status400BadRequest,
                 ConflictException => StatusCodes.Status409Conflict,
                 InternalServerErrorException => StatusCodes.Status500InternalServerError,
-                BaseException baseException => baseException.StatusCode,
-                (_) => StatusCodes.Status500InternalServerError
+                BaseException baseEx => baseEx.StatusCode,
+                _ => StatusCodes.Status500InternalServerError
             };
 
-            //2]ChangeContentType 
-
-            response.StatusCode = content.Response.StatusCode;
-            await content.Response.WriteAsync(response.ToString());
-
-           
-
+            response.StatusCode = context.Response.StatusCode;
+            
+            var jsonResponse = JsonSerializer.Serialize(response);
+            await context.Response.WriteAsync(jsonResponse);
         }
 
-        private int HandelValidationException(ValidationException validationException, ErrorDetails response)
+        private int HandleValidationException(ValidationException validationException, ErrorDetails response)
         {
             response.Errors = validationException.Errors;
             return StatusCodes.Status400BadRequest;
         }
+    }
 
+    // You need this ErrorDetails class
+    public class ErrorDetails
+    {
+        public int StatusCode { get; set; }
+        public string ErrorMessage { get; set; } = string.Empty;
+        public IEnumerable<string>? Errors { get; set; }
+
+        public override string ToString()
+        {
+            return JsonSerializer.Serialize(this);
+        }
     }
 }

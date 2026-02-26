@@ -1,6 +1,6 @@
 using AYA_UIS.Application.Contracts;
 
-namespace Infrastructure.Services
+namespace AYA_UIS.Infrastructure.Presistence.Services
 {
     public class EmailService : IEmailService
     {

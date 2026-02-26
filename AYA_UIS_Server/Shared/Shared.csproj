@@ -6,8 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <!-- FIXED: Reference the new Domain project instead of old Core/Domain -->
   <ItemGroup>
-    <ProjectReference Include="..\AYA_UIS.Core\Domain\Domain.csproj" />
+    <ProjectReference Include="..\AYA_UIS.Domain\AYA_UIS.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>

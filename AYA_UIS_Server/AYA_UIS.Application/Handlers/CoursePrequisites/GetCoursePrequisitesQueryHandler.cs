@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using AYA_UIS.Application.Dtos.CourseDtos;
 using AYA_UIS.Application.Queries.CoursePrequisites;
-using Domain.Contracts;
+using AYA_UIS.Domain.Contracts;
 using MediatR;
-using Shared.Dtos.Info_Module.CourseDtos;
 
 namespace AYA_UIS.Application.Handlers.CoursePrequisites
 {

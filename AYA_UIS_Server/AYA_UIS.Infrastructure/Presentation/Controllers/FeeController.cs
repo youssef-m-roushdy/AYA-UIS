@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AYA_UIS.Application.Commands.Fees;
+using AYA_UIS.Application.Dtos.DepartmentDtos.FeeDtos;
 using AYA_UIS.Application.Queries.Fees;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Shared.Dtos.Info_Module.FeeDtos;
 
-namespace Presentation.Controllers
+namespace AYA_UIS.Infrastructure.Presentation.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

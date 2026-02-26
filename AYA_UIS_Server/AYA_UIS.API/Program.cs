@@ -1,17 +1,12 @@
-﻿
-using Domain.Contracts;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Presistence;
-using Presistence.Repositories;
 using AYA_UIS.Application.Contracts;
 using AYA_UIS.MiddelWares;
 using Microsoft.AspNetCore.Mvc;
-using AYA_UIS.Factories;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Shared.Common;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
@@ -19,12 +14,14 @@ using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Cryptography;
 using System.Threading.RateLimiting;
-using AYA_UIS.Core.Domain.Entities.Identity;
-using AYA_UIS.Core.Services.Implementations;
+using AYA_UIS.Domain.Entities.Identity;
 using AYA_UIS.Application.Mapping;
-using Infrastructure.Services;
 using System.Text.Json.Serialization;
-using Services.Implementatios;
+using AYA_UIS.Infrastructure.Presistence;
+using AYA_UIS.Domain.Contracts;
+using AYA_UIS.Infrastructure.Presistence.Repositories;
+using AYA_UIS.Infrastructure.Presistence.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace AYA_UIS
 {
@@ -74,7 +71,7 @@ namespace AYA_UIS
                 var rsa = RSA.Create();
                 rsa.ImportFromPem(publicKey);
 
-                options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters()
+                options.TokenValidationParameters = new TokenValidationParameters()
                 {
                     ValidateIssuer = true,
                     ValidateAudience = true,
@@ -88,10 +85,6 @@ namespace AYA_UIS
                 };
 
             });
-
-
-
-
 
             builder.Services.AddAuthorization();
 
@@ -130,12 +123,6 @@ namespace AYA_UIS
 
 
             #endregion
-
-            builder.Services.Configure<ApiBehaviorOptions>(options =>
-            {
-                options.InvalidModelStateResponseFactory = ApiResponseFactory.CustomValidationErrorResponse;
-            });
-
             // MediatR for CQRS
             builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AYA_UIS.Application.AssemblyReference).Assembly));
 
@@ -189,37 +176,14 @@ namespace AYA_UIS
                                               Id="Bearer"
                                        }
                                 },
-                                     new string[]{}
+                                    new string[]{}
                             }
                   });
             });
 
-
-
-            //builder.Services.Configure<IdentityOptions>(options =>
-            //{
-            //    options.Lockout.MaxFailedAccessAttempts = 5;
-            //    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(10);
-            //    options.Lockout.AllowedForNewUsers = true;
-            //});
-
-            //builder.Services.AddRateLimiter(options =>
-            //{
-            //    options.AddFixedWindowLimiter("LoginPolicy", o =>
-            //    {
-            //        o.Window = TimeSpan.FromSeconds(30);
-            //        o.PermitLimit = 5;
-            //        o.QueueLimit = 0;
-            //    });
-            //});
-
-
-
             #endregion
 
             var app = builder.Build();
-
-
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -239,11 +203,6 @@ namespace AYA_UIS
             app.UseHttpsRedirection();
             app.MapControllers();
             app.UseStaticFiles();
-            //app.UseRateLimiter();
-            //app.MapPost("/Login", (HttpContext context) =>
-            //{
-            //}).RequireRateLimiting("LoginPolicy");
-
             app.Run();
         }
     }

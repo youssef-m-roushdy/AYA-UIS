@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AYA_UIS.Application.Commands.Semesters;
+using AYA_UIS.Application.Dtos.SemesterDtos;
 using AYA_UIS.Application.Queries.Semesters;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Shared.Dtos.Info_Module.SemesterDtos;
 
-namespace Presentation.Controllers
+namespace AYA_UIS.Infrastructure.Presentation.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

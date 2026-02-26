@@ -4,14 +4,14 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AYA_UIS.Application.Commands.Registrations;
+using AYA_UIS.Application.Dtos.RegistrationDtos;
 using AYA_UIS.Application.Queries.Registrations;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Shared.Dtos.Info_Module.RegistrationDtos;
 
-namespace Presentation.Controllers
+namespace AYA_UIS.Infrastructure.Presentation.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

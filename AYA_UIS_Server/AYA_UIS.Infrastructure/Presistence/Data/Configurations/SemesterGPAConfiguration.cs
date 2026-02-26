@@ -1,4 +1,4 @@
-using AYA_UIS.Core.Domain.Entities.Models;
+using AYA_UIS.Domain.Entities.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

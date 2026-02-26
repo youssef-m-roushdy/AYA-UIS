@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using AYA_UIS.Application.Dtos.RegistrationDtos;
 using AYA_UIS.Application.Queries.Registrations;
-using Domain.Contracts;
+using AYA_UIS.Domain.Contracts;
 using MediatR;
-using Shared.Dtos.Info_Module.RegistrationDtos;
 
 namespace AYA_UIS.Application.Handlers.Registrations
 {

@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AYA_UIS.Core.Domain.Entities.Models;
-using AYA_UIS.Core.Domain.Enums;
+using AYA_UIS.Domain.Entities.Models;
+using AYA_UIS.Domain.Enums;
 
 namespace AYA_UIS.Application.Contracts
 {

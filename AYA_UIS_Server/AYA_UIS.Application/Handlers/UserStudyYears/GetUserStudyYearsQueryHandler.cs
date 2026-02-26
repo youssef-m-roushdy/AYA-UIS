@@ -1,8 +1,8 @@
+using AYA_UIS.Application.Dtos.UserStudyYearDtos;
 using AYA_UIS.Application.Queries.UserStudyYears;
-using AYA_UIS.Core.Domain.Entities.Models;
-using Domain.Contracts;
+using AYA_UIS.Domain.Contracts;
+using AYA_UIS.Domain.Entities.Models;
 using MediatR;
-using Shared.Dtos.Info_Module.UserStudyYearDtos;
 using Shared.Respones;
 
 namespace AYA_UIS.Application.Handlers.UserStudyYears

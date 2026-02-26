@@ -1,10 +1,10 @@
 using AYA_UIS.Application.Queries.Departments;
 using AutoMapper;
 using AYA_UIS.Shared.Exceptions;
-using Domain.Contracts;
 using MediatR;
-using Shared.Dtos.Info_Module.DepartmentDtos;
 using Shared.Respones;
+using AYA_UIS.Application.Dtos.DepartmentDtos;
+using AYA_UIS.Domain.Contracts;
 
 namespace AYA_UIS.Application.Handlers.Departments
 {

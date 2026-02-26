@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AYA_UIS.Application.Commands.UserStudyYears;
-using AYA_UIS.Core.Domain.Entities.Identity;
-using AYA_UIS.Core.Domain.Enums;
-using Domain.Contracts;
 using MediatR;
-using AYA_UIS.Core.Domain.Entities.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using AYA_UIS.Domain.Contracts;
+using AYA_UIS.Domain.Entities.Identity;
+using AYA_UIS.Domain.Enums;
+using AYA_UIS.Domain.Entities.Models;
 
 namespace AYA_UIS.Application.Handlers.UserStudyYears
 {

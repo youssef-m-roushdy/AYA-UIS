@@ -1,4 +1,5 @@
-using Shared.Dtos.Auth_Module;
+
+using AYA_UIS.Application.Dtos.AuthDtos;
 
 namespace AYA_UIS.Application.Contracts
 {

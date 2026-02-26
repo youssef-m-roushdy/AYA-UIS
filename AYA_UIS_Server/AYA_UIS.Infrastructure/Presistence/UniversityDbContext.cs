@@ -1,11 +1,13 @@
 using System.Reflection;
-using AYA_UIS.Core.Domain.Entities.Identity;
-using AYA_UIS.Core.Domain.Entities.Models;
+using AYA_UIS.Domain.Entities.Identity;
+using AYA_UIS.Domain.Entities.Models;
+using AYA_UIS.Domain.Entities.Identity;
+using AYA_UIS.Domain.Entities.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace Presistence
+namespace AYA_UIS.Infrastructure.Presistence
 {
     public class UniversityDbContext : IdentityDbContext<User>
     {

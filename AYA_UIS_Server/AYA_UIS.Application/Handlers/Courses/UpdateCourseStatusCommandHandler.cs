@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AYA_UIS.Application.Commands.Courses;
-using Domain.Contracts;
+using AYA_UIS.Domain.Contracts;
 using MediatR;
 
 namespace AYA_UIS.Application.Handlers.Courses
