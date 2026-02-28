@@ -219,6 +219,28 @@
   letter-spacing: 0.04em;
 }
 
+.profile-more-roles {
+  font-size: 0.7rem;
+  color: #666;
+  margin-left: 4px;
+}
+
+.user-roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.role-badge {
+  background-color: #e0e7ff;
+  color: #4f46e5;
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 12px;
+  display: inline-block;
+}
+
 .dropdown-menu {
   position: absolute;
   top: 100%;

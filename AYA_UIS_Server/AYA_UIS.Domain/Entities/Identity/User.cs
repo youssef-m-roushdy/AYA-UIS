@@ -28,5 +28,6 @@ namespace AYA_UIS.Domain.Entities.Identity
         public ICollection<CourseUpload> CourseUpload { get; set; } = new List<CourseUpload>();
         public ICollection<SemesterGPA> SemesterGPAs { get; set; } = new List<SemesterGPA>();
         public ICollection<UserStudyYear> UserStudyYears { get; set; } = new List<UserStudyYear>(); 
+        public ICollection<UserRole> UserRoles { get; set; }
     }
 }

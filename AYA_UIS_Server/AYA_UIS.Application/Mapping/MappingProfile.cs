@@ -6,7 +6,9 @@ using AYA_UIS.Application.Dtos.DepartmentDtos;
 using AYA_UIS.Application.Dtos.DepartmentDtos.FeeDtos;
 using AYA_UIS.Application.Dtos.RegistrationDtos;
 using AYA_UIS.Application.Dtos.StudyYearDtos;
+using AYA_UIS.Application.Dtos.UserDtos;
 using AYA_UIS.Application.Dtos.UserStudyYearDtos;
+using AYA_UIS.Domain.Entities.Identity;
 using AYA_UIS.Domain.Entities.Models;
 
 
@@ -54,6 +56,12 @@ namespace AYA_UIS.Application.Mapping
 
             //user study year to user study year dto
             CreateMap<UserStudyYear, UserStudyYearDetailsDto>();
+
+            //user mapping
+            CreateMap<User, UserDto>().ForMember(dest => dest.Roles, opt => opt.MapFrom(src => 
+            src.UserRoles != null 
+            ? src.UserRoles.Select(ur => ur.Role.Name).ToList() 
+            : new List<string>()));;
             
         }
     }

@@ -58,8 +58,36 @@ namespace AYA_UIS.Infrastructure.Presentation.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery]UserQueries queries)
         {
-            await _serviceManager.UserService.GetAllUsers(queries);
-            return NoContent();
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+            
+            var users = await _serviceManager.UserService.GetAllUsers(userId, queries);
+            return Ok(users);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("students")]
+        public async Task<IActionResult> GetAllStudents([FromQuery]StudentQueries queries)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+            
+            var users = await _serviceManager.UserService.GetAllStudentUsers(userId, queries);
+            return Ok(users);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("ungraduate-students")]
+        public async Task<IActionResult> GetAllUnGraduateStudents([FromQuery]StudentQueries queries)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+            
+            var users = await _serviceManager.UserService.GetUnGraduateStudentUsers(userId, queries);
+            return Ok(users);
         }
 
     }

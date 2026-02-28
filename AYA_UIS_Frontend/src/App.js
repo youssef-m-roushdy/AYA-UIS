@@ -58,11 +58,11 @@ function App() {
               </ProtectedRoute>
             }
           >
-            {/* Dashboard */}
+            {/* Dashboard - accessible by all authenticated users */}
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<Dashboard />} />
 
-            {/* Admin routes */}
+            {/* Admin routes - only users with Admin role */}
             <Route
               path="admin/departments"
               element={
@@ -130,7 +130,7 @@ function App() {
             <Route
               path="admin/schedules"
               element={
-                <ProtectedRoute roles={['Admin']}>
+                <ProtectedRoute roles={['Admin', 'Instructor']}>
                   <Schedules isAdmin={true} />
                 </ProtectedRoute>
               }
@@ -144,7 +144,7 @@ function App() {
               }
             />
 
-            {/* Student routes */}
+            {/* Student routes - only users with Student role */}
             <Route
               path="student/my-courses"
               element={

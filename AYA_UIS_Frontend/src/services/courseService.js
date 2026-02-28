@@ -17,13 +17,8 @@ const courseService = {
     );
   },
   create: data => apiService.post(API_ENDPOINTS.COURSES.BASE, data),
-  updateStatus: (courseId, status) => {
-    const command = {
-      CourseId: courseId,
-      Status: status,
-    };
-    return apiService.patch(API_ENDPOINTS.COURSES.STATUS, command);
-  },
+  updateStatus: formData =>
+    apiService.patch(API_ENDPOINTS.COURSES.STATUS, formData),
   getUploads: id => apiService.get(API_ENDPOINTS.COURSES.UPLOADS(id)),
   getRegistrations: (id, yearId) =>
     apiService.get(API_ENDPOINTS.COURSES.REGISTRATIONS(id, yearId)),

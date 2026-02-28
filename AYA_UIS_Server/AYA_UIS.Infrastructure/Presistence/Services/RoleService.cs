@@ -9,10 +9,10 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
 {
     public class RoleService : IRoleService
     {
-        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly RoleManager<Role> _roleManager;
         private readonly UserManager<User> _userManager;
 
-        public RoleService(RoleManager<IdentityRole> roleManager, UserManager<User> userManager)
+        public RoleService(RoleManager<Role> roleManager, UserManager<User> userManager)
         {
             _roleManager = roleManager;
             _userManager = userManager;
@@ -51,7 +51,7 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
                 });
             }
 
-            var role = new IdentityRole(createRoleDto.RoleName);
+            var role = new Role { Name = createRoleDto.RoleName };
             return await _roleManager.CreateAsync(role);
         }
 

@@ -95,11 +95,11 @@ namespace AYA_UIS
                 options.Password.RequireUppercase = true;
                 options.Password.RequireLowercase = true;
                 options.User.RequireUniqueEmail = true;
-
             })
-            .AddRoles<IdentityRole>()
+            .AddRoles<Role>()
             .AddEntityFrameworkStores<UniversityDbContext>()
-            .AddDefaultTokenProviders();
+            .AddDefaultTokenProviders()
+            .AddSignInManager<SignInManager<User>>();
             builder.Services.AddScoped<IDataSeeding, DataSeeding>();
 
             // Rate Limit 

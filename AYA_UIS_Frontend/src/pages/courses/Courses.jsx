@@ -17,7 +17,7 @@ import { USER_ROLES } from '../../constants';
 import { toast } from 'react-toastify';
 
 export default function Courses() {
-  const { user } = useAuth();
+  const { user, hasRole, isAdmin } = useAuth(); // Use hasRole and isAdmin from context
   const [courses, setCourses] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -30,9 +30,6 @@ export default function Courses() {
   });
   const [detail, setDetail] = useState(null);
   const [updatingStatus, setUpdatingStatus] = useState(null);
-
-  // Check if user is admin
-  const isAdmin = user?.role === USER_ROLES.ADMIN;
 
   // Filter states
   const [filters, setFilters] = useState({
@@ -126,7 +123,8 @@ export default function Courses() {
   };
 
   const handleStatusToggle = async course => {
-    if (!isAdmin) {
+    // Use hasRole function instead of direct role check
+    if (!hasRole(USER_ROLES.ADMIN)) {
       toast.error('Only administrators can change course status');
       return;
     }
@@ -143,6 +141,7 @@ export default function Courses() {
       toast.success(`Course status updated to ${newStatus}`);
       loadCourses(); // Reload to get updated data
     } catch (err) {
+      console.log(err);
       toast.error(err?.errorMessage || 'Failed to update status');
     } finally {
       setUpdatingStatus(null);

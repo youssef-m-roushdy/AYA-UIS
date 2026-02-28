@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using AYA_UIS.Application.Contracts;
 using AYA_UIS.Application.Dtos.UserDtos;
 using AYA_UIS.Domain.Contracts;
 using AYA_UIS.Domain.Entities.Identity;
+using AYA_UIS.Domain.Enums;
 using AYA_UIS.Domain.Queries;
 using AYA_UIS.Shared.Exceptions;
 using Microsoft.AspNetCore.Identity;
@@ -19,17 +21,164 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
         private readonly UserManager<User> _userManager;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICloudinaryService _cloudinaryService;
+        private readonly UniversityDbContext _dbContext;
+        private readonly IMapper _mapper;
 
-        public UserService(UserManager<User> userManager, ILogger<UserService> logger, ICloudinaryService cloudinaryService, IUnitOfWork unitOfWork)
+        public UserService(UserManager<User> userManager, ILogger<UserService> logger, ICloudinaryService cloudinaryService, IUnitOfWork unitOfWork, UniversityDbContext dbContext, IMapper mapper)
         {
             _userManager = userManager;
             _cloudinaryService = cloudinaryService;
             _unitOfWork = unitOfWork;
+            _dbContext = dbContext;
+            _mapper = mapper;
         }
 
-        public Task<IEnumerable<UserDto>> GetAllUsers(UserQueries query)
+        public async Task<IEnumerable<UserDto>> GetAllUsers(string userId, UserQueries query)
         {
-            throw new NotImplementedException();
+            
+            var usersQuery = _dbContext.Users
+                .Where(u => u.Id != userId)
+                .Include(u => u.UserRoles)
+                    .ThenInclude(ur => ur.Role)
+                .AsQueryable();
+
+            // Filter by Role
+            if (!string.IsNullOrEmpty(query.Role))
+                usersQuery = usersQuery.Where(u => u.UserRoles.Any(ur => ur.Role.Name == query.Role));
+
+            // Filter by Academic Code
+            if (!string.IsNullOrEmpty(query.Academic_Code))
+                usersQuery = usersQuery.Where(u => u.Academic_Code == query.Academic_Code);
+
+            // Filter by Gender
+            if (query.Gender.HasValue)
+                usersQuery = usersQuery.Where(u => u.Gender == query.Gender.Value);
+
+            // Filter by Level
+            if (query.Level.HasValue)
+                usersQuery = usersQuery.Where(u => u.Level == query.Level.Value);
+
+            // Filter by TotalCredits
+            if (query.TotalCredits.HasValue)
+                usersQuery = usersQuery.Where(u => u.TotalCredits == query.TotalCredits.Value);
+
+            // Filter by AllowedCredits
+            if (query.AllowedCredits.HasValue)
+                usersQuery = usersQuery.Where(u => u.AllowedCredits == query.AllowedCredits.Value);
+
+            // Filter by TotalGPA
+            if (query.TotalGPA.HasValue)
+                usersQuery = usersQuery.Where(u => u.TotalGPA == query.TotalGPA.Value);
+
+            // Filter by Specialization
+            if (!string.IsNullOrEmpty(query.Specialization))
+                usersQuery = usersQuery.Where(u => u.Specialization == query.Specialization);
+
+            // Filter by DepartmentId
+            if (query.DepartmentId.HasValue)
+                usersQuery = usersQuery.Where(u => u.DepartmentId == query.DepartmentId.Value);
+
+            var users = await usersQuery.ToListAsync();
+
+            return _mapper.Map<IEnumerable<UserDto>>(users);
+        }
+
+        public async Task<IEnumerable<UserDto>> GetUnGraduateStudentUsers(string userId, StudentQueries query)
+        {
+            
+            var usersQuery = _dbContext.Users
+                .Where(u => u.Id != userId && u.Level != Levels.Graduate)
+                .Include(u => u.UserRoles)
+                    .ThenInclude(ur => ur.Role)
+                .AsQueryable();
+
+         
+            usersQuery = usersQuery.Where(u => u.UserRoles.Any(ur => ur.Role.Name == "Student"));
+
+            // Filter by Academic Code
+            if (!string.IsNullOrEmpty(query.Academic_Code))
+                usersQuery = usersQuery.Where(u => u.Academic_Code == query.Academic_Code);
+
+            // Filter by Gender
+            if (query.Gender.HasValue)
+                usersQuery = usersQuery.Where(u => u.Gender == query.Gender.Value);
+
+            // Filter by Level
+            if (query.Level.HasValue)
+                usersQuery = usersQuery.Where(u => u.Level == query.Level.Value);
+
+            // Filter by TotalCredits
+            if (query.TotalCredits.HasValue)
+                usersQuery = usersQuery.Where(u => u.TotalCredits == query.TotalCredits.Value);
+
+            // Filter by AllowedCredits
+            if (query.AllowedCredits.HasValue)
+                usersQuery = usersQuery.Where(u => u.AllowedCredits == query.AllowedCredits.Value);
+
+            // Filter by TotalGPA
+            if (query.TotalGPA.HasValue)
+                usersQuery = usersQuery.Where(u => u.TotalGPA == query.TotalGPA.Value);
+
+            // Filter by Specialization
+            if (!string.IsNullOrEmpty(query.Specialization))
+                usersQuery = usersQuery.Where(u => u.Specialization == query.Specialization);
+
+            // Filter by DepartmentId
+            if (query.DepartmentId.HasValue)
+                usersQuery = usersQuery.Where(u => u.DepartmentId == query.DepartmentId.Value);
+
+            var users = await usersQuery.ToListAsync();
+
+            return _mapper.Map<IEnumerable<UserDto>>(users);
+        }
+
+        public async Task<IEnumerable<UserDto>> GetAllStudentUsers(string userId, StudentQueries query)
+        {
+            
+            var usersQuery = _dbContext.Users
+                .Where(u => u.Id != userId)
+                .Include(u => u.UserRoles)
+                    .ThenInclude(ur => ur.Role)
+                .AsQueryable();
+
+         
+            usersQuery = usersQuery.Where(u => u.UserRoles.Any(ur => ur.Role.Name == "Student"));
+
+            // Filter by Academic Code
+            if (!string.IsNullOrEmpty(query.Academic_Code))
+                usersQuery = usersQuery.Where(u => u.Academic_Code == query.Academic_Code);
+
+            // Filter by Gender
+            if (query.Gender.HasValue)
+                usersQuery = usersQuery.Where(u => u.Gender == query.Gender.Value);
+
+            // Filter by Level
+            if (query.Level.HasValue)
+                usersQuery = usersQuery.Where(u => u.Level == query.Level.Value);
+
+            // Filter by TotalCredits
+            if (query.TotalCredits.HasValue)
+                usersQuery = usersQuery.Where(u => u.TotalCredits == query.TotalCredits.Value);
+
+            // Filter by AllowedCredits
+            if (query.AllowedCredits.HasValue)
+                usersQuery = usersQuery.Where(u => u.AllowedCredits == query.AllowedCredits.Value);
+
+            // Filter by TotalGPA
+            if (query.TotalGPA.HasValue)
+                usersQuery = usersQuery.Where(u => u.TotalGPA == query.TotalGPA.Value);
+
+            // Filter by Specialization
+            if (!string.IsNullOrEmpty(query.Specialization))
+                usersQuery = usersQuery.Where(u => u.Specialization == query.Specialization);
+
+            // Filter by DepartmentId
+            if (query.DepartmentId.HasValue)
+                usersQuery = usersQuery.Where(u => u.DepartmentId == query.DepartmentId.Value);
+
+            var users = await usersQuery.ToListAsync();
+
+            return _mapper.Map<IEnumerable<UserDto>>(users);
         }
 
         public async Task<userProfileDetailsDto> GetUserProfileByAcademicCodeAsync(string academicCode)

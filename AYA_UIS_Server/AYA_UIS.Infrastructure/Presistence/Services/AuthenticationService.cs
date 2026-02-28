@@ -26,13 +26,13 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
     {
         private readonly UserManager<User> _userManager;
         private readonly IOptions<JwtOptions> _options;
-        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly RoleManager<Role> _roleManager;
         private readonly IUnitOfWork _unitOfWork;
 
         public AuthenticationService(
             UserManager<User> userManager,
             IOptions<JwtOptions> options,
-            RoleManager<IdentityRole> roleManager,
+            RoleManager<Role> roleManager,
             IUnitOfWork unitOfWork)
         {
             _userManager = userManager;
@@ -53,6 +53,8 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
             var validPassword = await _userManager.CheckPasswordAsync(user, loginDto.Password);
             if (!validPassword) throw new UnauthorizedAccessException();
 
+            var roles = await _userManager.GetRolesAsync(user);
+
             var department = user.DepartmentId.HasValue
                 ? await _unitOfWork.Departments.GetByIdAsync(user.DepartmentId.Value) // check from department because identity db separate from main db and user can be admin or stuff member without department
                 : null;
@@ -65,7 +67,7 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
                     DisplayName = user.DisplayName,
                     Token = await CreateTokenAsync(user),
                     Email = user.Email,
-                    Role = (await _userManager.GetRolesAsync(user)).FirstOrDefault(),
+                    Roles = roles.ToList(),
                     AcademicCode = user.Academic_Code,
                     UserName = user.UserName,
                     TotalCredits = null, // null he is not student
@@ -81,20 +83,20 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
                 };
             }
 
-            var roles = await _userManager.GetRolesAsync(user);
+            
 
             return new UserResultDto{
                 Id = user.Id,
                 DisplayName = user.DisplayName,
                 Token = await CreateTokenAsync(user),
                 Email = user.Email,
-                Role = roles.FirstOrDefault(),
+                Roles = roles.ToList(),
                 AcademicCode = user.Academic_Code,
                 UserName = user.UserName,
-                TotalCredits = null, // null he is not student
-                AllowedCredits = null, // null he is not student
-                TotalGPA = null, // null he is not student
-                Specialization = null, // null he is not student
+                TotalCredits = user.TotalCredits,
+                AllowedCredits = user.AllowedCredits,
+                TotalGPA = user.TotalGPA,
+                Specialization = user.Specialization,
                 Level = user.Level, // null he is not student
                 PhoneNumber = user.PhoneNumber,
                 DepartmentName = department.Name,
@@ -161,7 +163,7 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
                 Email = user.Email,
                 Token = token,
                 AcademicCode = user.Academic_Code,
-                Role = roles.FirstOrDefault(),
+                Roles = roles.ToList(),
                 UserName = user.UserName,
                 TotalCredits = null, // null he is not student
                 AllowedCredits = user.AllowedCredits, // null he is not student
@@ -241,7 +243,7 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
                 Email = user.Email,
                 Token = token,
                 AcademicCode = user.Academic_Code,
-                Role = roles.FirstOrDefault(),
+                Roles = roles.ToList(),
                 UserName = user.UserName,
                 TotalCredits = user.TotalCredits, 
                 AllowedCredits = user.AllowedCredits, 

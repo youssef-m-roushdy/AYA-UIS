@@ -66,4 +66,20 @@ export const userService = {
     api.patchForm(API_ENDPOINTS.USER.UPDATE_PROFILE_PICTURE, formData),
   updateSpecialization: data =>
     api.patch(API_ENDPOINTS.USER.UPDATE_SPECIALIZATION, data),
+
+  // New method for getting all students with filters
+  getAllStudents: (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    const url = `/api/User/students${queryString ? `?${queryString}` : ''}`;
+    return api.get(url);
+  },
+
+  // Get ungraduated students (excluding Graduate level)
+  getUngraduatedStudents: (params = {}) => {
+    // Explicitly exclude Graduate level by not including it in params
+    // The API will return all students, we filter in the component
+    const queryString = new URLSearchParams(params).toString();
+    const url = `/api/User/ungraduate-students${queryString ? `?${queryString}` : ''}`;
+    return api.get(url);
+  },
 };

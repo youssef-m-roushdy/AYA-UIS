@@ -10,12 +10,12 @@ using AYA_UIS.Domain.Contracts;
 public class DataSeeding : IDataSeeding
 {
     private readonly UniversityDbContext _dbContext;
-    private readonly RoleManager<IdentityRole> _roleManager;
+    private readonly RoleManager<Role> _roleManager;
     private readonly UserManager<User> _userManager;
 
     public DataSeeding(
         UniversityDbContext dbContext,
-        RoleManager<IdentityRole> roleManager,
+        RoleManager<Role> roleManager,
         UserManager<User> userManager)
     {
         _dbContext = dbContext;
@@ -259,7 +259,7 @@ public class DataSeeding : IDataSeeding
         {
             if (!await _roleManager.RoleExistsAsync(roleName))
             {
-                var role = new IdentityRole { Name = roleName };
+                var role = new Role { Name = roleName };
                 await _roleManager.CreateAsync(role);
             }
         }
@@ -269,19 +269,19 @@ public class DataSeeding : IDataSeeding
         {
             var adminUser = new User()
             {
-                DisplayName = "Moustafa Ezzat",
-                Email = "MoustafaEzzat@gmail.com",
-                UserName = "Moustafa02",
-                PhoneNumber = "01557703382",
-                Academic_Code = "2203071",
+                DisplayName = "Admin User",
+                Email = "admin@gmail.com",
+                UserName = "Admin123",
+                PhoneNumber = "0123456789",
+                Academic_Code = "220500",
                 Level = null,
                 Specialization = null,
                 TotalCredits = null,
                 DepartmentId = null,
-                AllowedCredits = null
+                AllowedCredits = null,
             };
             
-            var result = await _userManager.CreateAsync(adminUser, "Moustafa@123");
+            var result = await _userManager.CreateAsync(adminUser, "Admin@123");
             
             if (result.Succeeded)
             {

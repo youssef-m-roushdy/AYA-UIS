@@ -19,7 +19,7 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
         public ServiceManager(
             UserManager<User> userManager,
             IOptions<JwtOptions> options,
-            RoleManager<IdentityRole> roleManager,
+            RoleManager<Role> roleManager,
             IUserService userService, // Fix: Use the interface instead of concrete class
             IUnitOfWork unitOfWork) // Fix: Add IUnitOfWork to the constructor
         {

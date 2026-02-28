@@ -15,8 +15,8 @@ namespace AYA_UIS.Application.Dtos.UserDtos
         public string UserName { get; set; } = string.Empty;
         public string PhoneNumber { get; set; } = string.Empty;
         public string Academic_Code { get; set; } = string.Empty;
+        public Levels Level { get; set; }
         public Gender Gender { get; set; }
         public List<string> Roles { get; set; }
-
     }
 }
