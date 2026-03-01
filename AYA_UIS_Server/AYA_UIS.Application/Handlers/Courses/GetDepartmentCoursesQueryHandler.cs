@@ -10,7 +10,7 @@ using MediatR;
 
 namespace AYA_UIS.Application.Handlers.Courses
 {
-    public class GetDepartmentCoursesQueryHandler : IRequestHandler<GetDepartmentCoursesQuery, IEnumerable<CourseDto>>
+    public class GetDepartmentCoursesQueryHandler : IRequestHandler<GetDepartmentCoursesQuery, IEnumerable<DepartmentCourseDto>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -21,14 +21,14 @@ namespace AYA_UIS.Application.Handlers.Courses
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<CourseDto>> Handle(GetDepartmentCoursesQuery request, CancellationToken cancellationToken)
+        public async Task<IEnumerable<DepartmentCourseDto>> Handle(GetDepartmentCoursesQuery request, CancellationToken cancellationToken)
         {
             var department = await _unitOfWork.Departments.GetByIdAsync(request.DepartmentId);
             if (department == null)            {
                 throw new Exception("Department not found");
             }
             var courses = await _unitOfWork.Courses.GetDepartmentCoursesAsync(request.DepartmentId, request.Query);
-            return _mapper.Map<IEnumerable<CourseDto>>(courses);
+            return _mapper.Map<IEnumerable<DepartmentCourseDto>>(courses);
         }
     }
 }

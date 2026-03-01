@@ -40,6 +40,7 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
                 .Where(u => u.Id != userId)
                 .Include(u => u.UserRoles)
                     .ThenInclude(ur => ur.Role)
+                .Include(u => u.Department)
                 .AsQueryable();
 
             // Filter by Role
@@ -48,7 +49,7 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
 
             // Filter by Academic Code
             if (!string.IsNullOrEmpty(query.Academic_Code))
-                usersQuery = usersQuery.Where(u => u.Academic_Code == query.Academic_Code);
+                usersQuery = usersQuery.Where(u => u.AcademicCode == query.Academic_Code);
 
             // Filter by Gender
             if (query.Gender.HasValue)
@@ -90,6 +91,7 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
                 .Where(u => u.Id != userId && u.Level != Levels.Graduate)
                 .Include(u => u.UserRoles)
                     .ThenInclude(ur => ur.Role)
+                .Include(u => u.Department)
                 .AsQueryable();
 
          
@@ -97,7 +99,7 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
 
             // Filter by Academic Code
             if (!string.IsNullOrEmpty(query.Academic_Code))
-                usersQuery = usersQuery.Where(u => u.Academic_Code == query.Academic_Code);
+                usersQuery = usersQuery.Where(u => u.AcademicCode == query.Academic_Code);
 
             // Filter by Gender
             if (query.Gender.HasValue)
@@ -139,6 +141,7 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
                 .Where(u => u.Id != userId)
                 .Include(u => u.UserRoles)
                     .ThenInclude(ur => ur.Role)
+                .Include(u => u.Department)
                 .AsQueryable();
 
          
@@ -146,7 +149,7 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
 
             // Filter by Academic Code
             if (!string.IsNullOrEmpty(query.Academic_Code))
-                usersQuery = usersQuery.Where(u => u.Academic_Code == query.Academic_Code);
+                usersQuery = usersQuery.Where(u => u.AcademicCode == query.Academic_Code);
 
             // Filter by Gender
             if (query.Gender.HasValue)
@@ -187,7 +190,7 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
             {
                 var user = await _userManager.Users
                     
-                    .FirstOrDefaultAsync(u => u.Academic_Code == academicCode);
+                    .FirstOrDefaultAsync(u => u.AcademicCode == academicCode);
 
                 if (user == null)
                     throw new NotFoundException($"User with academic code '{academicCode}' not found.");
@@ -208,7 +211,7 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
                     UserName = user.UserName,
                     PhoneNumber = user.PhoneNumber,
                     ProfilePicture = user.ProfilePicture,
-                    AcademicCode = user.Academic_Code,
+                    AcademicCode = user.AcademicCode,
                     Level = user.Level,
                     TotalCredits = user.TotalCredits,
                     AllowedCredits = user.AllowedCredits,
@@ -253,7 +256,7 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
             try
             {
                 var user = await _userManager.Users
-                    .FirstOrDefaultAsync(u => u.Academic_Code == academicCode);
+                    .FirstOrDefaultAsync(u => u.AcademicCode == academicCode);
 
                 if (user == null)
                     throw new NotFoundException($"Student with academic code '{academicCode}' not found.");

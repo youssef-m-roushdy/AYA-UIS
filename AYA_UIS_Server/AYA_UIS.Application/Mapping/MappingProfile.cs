@@ -34,8 +34,11 @@ namespace AYA_UIS.Application.Mapping
             CreateMap<Fee, FeeDto>().ReverseMap();
 
             //Course mappings
-            CreateMap<Course, CourseDto>().ReverseMap();
+            CreateMap<Course, CourseDto>()
+            .ForMember(dest => dest.Department, opt => opt.MapFrom(src => src.Department.Code))
+            .ReverseMap();
             CreateMap<CreateCourseDto, Course>();
+            CreateMap<Course, DepartmentCourseDto>().ReverseMap();
             //CreateMap<UpdateCourseDto, Course>();
 
             //CourseUpload mappings
@@ -61,7 +64,9 @@ namespace AYA_UIS.Application.Mapping
             CreateMap<User, UserDto>().ForMember(dest => dest.Roles, opt => opt.MapFrom(src => 
             src.UserRoles != null 
             ? src.UserRoles.Select(ur => ur.Role.Name).ToList() 
-            : new List<string>()));;
+            : new List<string>()))
+            .ForMember(dest => dest.Department, opt => opt.MapFrom(src => 
+            src.Department != null ? src.Department.Code : null));
             
         }
     }

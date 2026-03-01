@@ -9,10 +9,7 @@ namespace AYA_UIS.Application.Dtos.UserStudyYearDtos
     {
         public string UserId { get; set; } = string.Empty;
         public Levels CurrentLevel { get; set; }
-        public string DepartmentName { get; set; } = string.Empty;
-        public int? CurrentStudyYearId { get; set; }
-        public int? CurrentStartYear { get; set; }
-        public int? CurrentEndYear { get; set; }
+        public string Department { get; set; } = string.Empty;
         public int TotalYearsCompleted { get; set; }
         public bool IsGraduated { get; set; }
         public List<UserStudyYearDetailsDto> StudyYears { get; set; } = new();

@@ -127,7 +127,7 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
         public async Task<IdentityResult> UpdateUserRoleByAcademicCodeAsync(UpdateUserRoleDto dto)
         {
             var user = await _userManager.Users
-                .FirstOrDefaultAsync(u => u.Academic_Code == dto.AcademicCode);
+                .FirstOrDefaultAsync(u => u.AcademicCode == dto.AcademicCode);
 
             if (user == null)
             {
@@ -159,7 +159,7 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
         public async Task<UserRoleInfoDto> GetUserRoleInfoByAcademicCodeAsync(string academicCode)
         {
             var user = await _userManager.Users
-                .FirstOrDefaultAsync(u => u.Academic_Code == academicCode);
+                .FirstOrDefaultAsync(u => u.AcademicCode == academicCode);
 
             if (user == null)
                 throw new NotFoundException(

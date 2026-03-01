@@ -68,7 +68,7 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
                     Token = await CreateTokenAsync(user),
                     Email = user.Email,
                     Roles = roles.ToList(),
-                    AcademicCode = user.Academic_Code,
+                    AcademicCode = user.AcademicCode,
                     UserName = user.UserName,
                     TotalCredits = null, // null he is not student
                     AllowedCredits = null, // null he is not student
@@ -76,14 +76,12 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
                     Specialization = null, // null he is not student
                     Level = user.Level, // null he is not student
                     PhoneNumber = user.PhoneNumber,
-                    DepartmentName = null, // // null he is not student,
+                    Department = null, // // null he is not student,
                     Gender = user.Gender,
                     DepartmentId = null,
                     ProfilePicture = user.ProfilePicture
                 };
             }
-
-            
 
             return new UserResultDto{
                 Id = user.Id,
@@ -91,15 +89,15 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
                 Token = await CreateTokenAsync(user),
                 Email = user.Email,
                 Roles = roles.ToList(),
-                AcademicCode = user.Academic_Code,
+                AcademicCode = user.AcademicCode,
                 UserName = user.UserName,
                 TotalCredits = user.TotalCredits,
                 AllowedCredits = user.AllowedCredits,
                 TotalGPA = user.TotalGPA,
                 Specialization = user.Specialization,
-                Level = user.Level, // null he is not student
+                Level = user.Level,
                 PhoneNumber = user.PhoneNumber,
-                DepartmentName = department.Name,
+                Department = department.Code,
                 Gender = user.Gender,
                 DepartmentId = department.Id,
                 ProfilePicture = user.ProfilePicture
@@ -114,7 +112,7 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
         {
             var ChekInputValidation = new List<string>();
 
-            if (await _userManager.Users.AnyAsync(u => u.Academic_Code == registerDto.Academic_Code))
+            if (await _userManager.Users.AnyAsync(u => u.AcademicCode == registerDto.AcademicCode))
                 ChekInputValidation.Add("Academic Code already exists.");
 
             if (await _userManager.Users.AnyAsync(u => u.UserName == registerDto.UserName))
@@ -134,7 +132,7 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
                 Email = registerDto.Email,
                 UserName = registerDto.UserName,   
                 PhoneNumber = registerDto.PhoneNumber,
-                Academic_Code = registerDto.Academic_Code,
+                AcademicCode = registerDto.AcademicCode,
                 Gender = registerDto.Gender
             };
 
@@ -162,7 +160,7 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
                 DisplayName = user.DisplayName,
                 Email = user.Email,
                 Token = token,
-                AcademicCode = user.Academic_Code,
+                AcademicCode = user.AcademicCode,
                 Roles = roles.ToList(),
                 UserName = user.UserName,
                 TotalCredits = null, // null he is not student
@@ -171,7 +169,7 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
                 Specialization = user.Specialization, // null he is not student
                 Level = user.Level, // null he is not student
                 PhoneNumber = user.PhoneNumber,
-                DepartmentName = null,// // null he is not student
+                Department = null,// // null he is not student
                 DepartmentId = user.DepartmentId,
                 ProfilePicture = user.ProfilePicture          
             };
@@ -181,7 +179,7 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
         {
             var ChekInputValidation = new List<string>();
 
-            if (await _userManager.Users.AnyAsync(u => u.Academic_Code == registerStudentDto.Academic_Code))
+            if (await _userManager.Users.AnyAsync(u => u.AcademicCode == registerStudentDto.AcademicCode))
                 ChekInputValidation.Add("Academic Code already exists.");
 
             if (await _userManager.Users.AnyAsync(u => u.UserName == registerStudentDto.UserName))
@@ -209,7 +207,7 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
                 Email = registerStudentDto.Email,
                 UserName = registerStudentDto.UserName,   
                 PhoneNumber = registerStudentDto.PhoneNumber,
-                Academic_Code = registerStudentDto.Academic_Code,
+                AcademicCode = registerStudentDto.AcademicCode,
                 Level = startingLevel,
                 TotalCredits = 0,
                 AllowedCredits = 0,
@@ -242,7 +240,7 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
                 DisplayName = user.DisplayName,
                 Email = user.Email,
                 Token = token,
-                AcademicCode = user.Academic_Code,
+                AcademicCode = user.AcademicCode,
                 Roles = roles.ToList(),
                 UserName = user.UserName,
                 TotalCredits = user.TotalCredits, 
@@ -251,7 +249,7 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
                 Specialization = user.Specialization, 
                 Level = user.Level, 
                 PhoneNumber = user.PhoneNumber,
-                DepartmentName = department.Name,
+                Department = department.Code,
                 ProfilePicture = user.ProfilePicture,
                 Gender = user.Gender
             };

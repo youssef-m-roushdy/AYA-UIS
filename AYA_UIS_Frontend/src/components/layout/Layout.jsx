@@ -77,24 +77,6 @@ export default function Layout() {
       roles: ['Admin'],
     },
     {
-      to: ROUTES.ADMIN.REGISTRATIONS,
-      icon: <FiClipboard />,
-      label: 'Registrations',
-      roles: ['Admin'],
-    },
-    {
-      to: ROUTES.ADMIN.FEES,
-      icon: <FiDollarSign />,
-      label: 'Fees',
-      roles: ['Admin'],
-    },
-    {
-      to: ROUTES.ADMIN.SCHEDULES,
-      icon: <FiFileText />,
-      label: 'Schedules',
-      roles: ['Admin', 'Instructor'],
-    },
-    {
       to: ROUTES.ADMIN.ROLES,
       icon: <FiShield />,
       label: 'Roles',

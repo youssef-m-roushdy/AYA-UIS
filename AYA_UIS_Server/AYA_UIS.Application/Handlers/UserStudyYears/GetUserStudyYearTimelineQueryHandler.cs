@@ -7,6 +7,7 @@ using AYA_UIS.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualBasic;
 using Shared.Respones;
 
 namespace AYA_UIS.Application.Handlers.UserStudyYears
@@ -44,6 +45,7 @@ namespace AYA_UIS.Application.Handlers.UserStudyYears
             if(department == null)
                 return Response<UserStudyYearTimelineDto>.ErrorResponse("Department not found for the user.");
 
+
             // get total completed years (non current)
             var completedYears = userStudyYears.Where(sy => !sy.StudyYear.IsCurrent).ToList();
             var timeline = new UserStudyYearTimelineDto
@@ -52,20 +54,17 @@ namespace AYA_UIS.Application.Handlers.UserStudyYears
                 CurrentLevel = user.Level.GetValueOrDefault(),
                 TotalYearsCompleted = completedYears.Count,
                 IsGraduated = user.Level == Levels.Graduate,
-                DepartmentName = department.Name,
+                Department = department.Name,
                 StudyYears =  userStudyYears.Select(sy => new UserStudyYearDetailsDto
                 {
                     UserStudyYearId = sy.Id,
                     StartYear = sy.StudyYear.StartYear,
                     EndYear = sy.StudyYear.EndYear,
                     Level = sy.Level,
-                    IsActive = sy.IsActive,
                     IsCurrent = sy.StudyYear.IsCurrent,
                     EnrolledAt = sy.EnrolledAt
                 }).OrderByDescending(sy => sy.StartYear).ToList()
             };
-
-            Console.WriteLine(timeline);
 
             return Response<UserStudyYearTimelineDto>.SuccessResponse(timeline);
         }

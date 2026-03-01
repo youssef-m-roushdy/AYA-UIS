@@ -13,7 +13,7 @@ namespace AYA_UIS.Domain.Entities.Identity
     {
         public string DisplayName { get; set; } = string.Empty;
         public string ProfilePicture { get; set; } = string.Empty;
-        public string Academic_Code { get; set; } = string.Empty;
+        public string AcademicCode { get; set; } = string.Empty;
         public Gender Gender { get; set; }
         public Levels? Level { get; set; } // if he study eng will prep year any other will start from first year
         public int? TotalCredits { get; set; } // the total credits that the student has registered for in the current study year

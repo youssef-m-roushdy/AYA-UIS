@@ -22,7 +22,7 @@ namespace AYA_UIS.Application.Dtos.AuthDtos
         public decimal? TotalGPA { get; set; } = null;
         public string? Specialization { get; set; } = null;
         public Levels? Level { get; set; }
-        public string? DepartmentName { get; set; }
+        public string? Department { get; set; }
         public int? DepartmentId { get; set; }
         public string? ProfilePicture { get; set; } = null;
         public Gender Gender { get; set; }

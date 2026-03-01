@@ -26,7 +26,7 @@ namespace AYA_UIS.Application.Handlers.UserStudyYears
 
         public async Task<Unit> Handle(PromoteStudentCommand request, CancellationToken cancellationToken)
         {
-            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Academic_Code == request.AcademicCode);
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.AcademicCode == request.AcademicCode);
 
             if (user == null)
                 throw new Exception("User not found");

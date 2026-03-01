@@ -75,7 +75,7 @@ input, select, textarea { font-family: inherit; }
 .stat-info p { font-size: 0.85rem; color: var(--text-light); }
 
 /* Table */
-.table-container { overflow-x: auto; }
+.table-container { overflow-x: auto;}
 table { width: 100%; border-collapse: collapse; }
 th { padding: 12px 16px; text-align: left; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-light); background: #f7fafc; border-bottom: 2px solid var(--border); }
 td { padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }

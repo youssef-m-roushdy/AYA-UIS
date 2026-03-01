@@ -8,7 +8,7 @@ using MediatR;
 
 namespace AYA_UIS.Application.Queries.Courses
 {
-    public class GetDepartmentCoursesQuery : IRequest<IEnumerable<CourseDto>>
+    public class GetDepartmentCoursesQuery : IRequest<IEnumerable<DepartmentCourseDto>>
     {
         public int DepartmentId { get; set; }
         public DepartmentCourseQuery Query { get; set; }

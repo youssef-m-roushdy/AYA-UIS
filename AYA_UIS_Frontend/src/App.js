@@ -14,11 +14,8 @@ import Courses from './pages/courses/Courses';
 import StudyYears from './pages/admin/StudyYears';
 import Students from './pages/admin/Students';
 import Roles from './pages/admin/Roles';
-import Registrations from './pages/admin/Registrations';
 import PromoteStudents from './pages/admin/PromoteStudents';
 import StudyYearFees from './pages/admin/StudyYearFees';
-import Fees from './pages/fees/Fees';
-import Schedules from './pages/schedules/Schedules';
 import MyCourses from './pages/student/MyCourses';
 import Timeline from './pages/student/Timeline';
 import Profile from './pages/student/Profile';
@@ -112,30 +109,6 @@ function App() {
               }
             />
             <Route
-              path="admin/registrations"
-              element={
-                <ProtectedRoute roles={['Admin']}>
-                  <Registrations />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="admin/fees"
-              element={
-                <ProtectedRoute roles={['Admin']}>
-                  <Fees />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="admin/schedules"
-              element={
-                <ProtectedRoute roles={['Admin', 'Instructor']}>
-                  <Schedules isAdmin={true} />
-                </ProtectedRoute>
-              }
-            />
-            <Route
               path="admin/promote-students"
               element={
                 <ProtectedRoute roles={['Admin']}>
@@ -206,14 +179,6 @@ function App() {
               element={
                 <ProtectedRoute roles={['Student']}>
                   <Profile />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="student/schedules"
-              element={
-                <ProtectedRoute roles={['Student']}>
-                  <Schedules isAdmin={false} />
                 </ProtectedRoute>
               }
             />

@@ -115,6 +115,11 @@ export const ROUTES = {
   },
 };
 
+export const GENDER_OPTIONS = {
+  MALE: 'Male',
+  FEMALE: 'Female',
+};
+
 export const USER_ROLES = {
   ADMIN: 'Admin',
   INSTRUCTOR: 'Instructor',

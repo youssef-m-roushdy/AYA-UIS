@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  FiArrowUp, 
-  FiUsers, 
-  FiSearch, 
-  FiFilter, 
+import {
+  FiArrowUp,
+  FiUsers,
+  FiFilter,
   FiX,
   FiChevronLeft,
   FiChevronRight,
-  FiLoader
+  FiLoader,
+  FiEye,
 } from 'react-icons/fi';
 import { userService } from '../../services/otherServices';
 import { userStudyYearService } from '../../services/otherServices';
@@ -22,11 +22,12 @@ export default function PromoteStudents() {
   const [loading, setLoading] = useState(false);
   const [promotingId, setPromotingId] = useState(null);
   const [promoteAllLoading, setPromoteAllLoading] = useState(false);
-  
+  const [selectedStudent, setSelectedStudent] = useState(null);
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [studentsPerPage] = useState(10);
-  
+
   // Filter states
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
@@ -62,14 +63,8 @@ export default function PromoteStudents() {
   const loadUngraduatedStudents = async () => {
     setLoading(true);
     try {
-      // Get all ungraduated students (excluding Graduate level)
-      const params = {
-        // Explicitly exclude Graduate level by not including it
-        // You can also add Level_not=Graduate if your API supports it
-      };
-      
-      const response = await userService.getUngraduatedStudents(params);
-      
+      const response = await userService.getUngraduatedStudents();
+
       // Handle different response structures
       let studentsData = [];
       if (response?.data) {
@@ -79,13 +74,13 @@ export default function PromoteStudents() {
       } else {
         studentsData = response || [];
       }
-      
+
       // Filter out any graduate students manually if API doesn't exclude them
       studentsData = studentsData.filter(s => s.level !== 'Graduate');
-      console.log(studentsData)
+
       setStudents(studentsData);
       setFilteredStudents(studentsData);
-      
+
       if (studentsData.length === 0) {
         toast.info('No eligible students found for promotion');
       }
@@ -104,8 +99,10 @@ export default function PromoteStudents() {
 
     // Apply text filters
     if (filters.academicCode) {
-      filtered = filtered.filter(s => 
-        s.academicCode?.toLowerCase().includes(filters.academicCode.toLowerCase())
+      filtered = filtered.filter(s =>
+        s.academicCode
+          ?.toLowerCase()
+          .includes(filters.academicCode.toLowerCase())
       );
     }
 
@@ -118,30 +115,44 @@ export default function PromoteStudents() {
     }
 
     if (filters.departmentId) {
-      filtered = filtered.filter(s => s.departmentId === parseInt(filters.departmentId));
+      filtered = filtered.filter(s => {
+        // Handle both department object and departmentId
+        const deptId = s.departmentId || s.department?.id;
+        return deptId === parseInt(filters.departmentId);
+      });
     }
 
     if (filters.specialization) {
-      filtered = filtered.filter(s => 
-        s.specialization?.toLowerCase().includes(filters.specialization.toLowerCase())
+      filtered = filtered.filter(s =>
+        s.specialization
+          ?.toLowerCase()
+          .includes(filters.specialization.toLowerCase())
       );
     }
 
-    // Apply numeric filters
+    // Apply numeric filters (if your API returns these fields)
     if (filters.minGPA) {
-      filtered = filtered.filter(s => (s.totalGPA || 0) >= parseFloat(filters.minGPA));
+      filtered = filtered.filter(
+        s => (s.totalGPA || 0) >= parseFloat(filters.minGPA)
+      );
     }
 
     if (filters.maxGPA) {
-      filtered = filtered.filter(s => (s.totalGPA || 0) <= parseFloat(filters.maxGPA));
+      filtered = filtered.filter(
+        s => (s.totalGPA || 0) <= parseFloat(filters.maxGPA)
+      );
     }
 
     if (filters.minCredits) {
-      filtered = filtered.filter(s => (s.totalCredits || 0) >= parseInt(filters.minCredits));
+      filtered = filtered.filter(
+        s => (s.totalCredits || 0) >= parseInt(filters.minCredits)
+      );
     }
 
     if (filters.maxCredits) {
-      filtered = filtered.filter(s => (s.totalCredits || 0) <= parseInt(filters.maxCredits));
+      filtered = filtered.filter(
+        s => (s.totalCredits || 0) <= parseInt(filters.maxCredits)
+      );
     }
 
     setFilteredStudents(filtered);
@@ -166,18 +177,23 @@ export default function PromoteStudents() {
     });
   };
 
-  const handlePromoteStudent = async (student) => {
-    if (!window.confirm(
-      `Are you sure you want to promote ${student.displayName} (${student.academic_Code}) to the next study year?`
-    )) return;
+  const handlePromoteStudent = async student => {
+    if (
+      !window.confirm(
+        `Are you sure you want to promote ${student.displayName} (${student.academicCode}) to the next study year?`
+      )
+    )
+      return;
 
     setPromotingId(student.id);
     try {
-      const res = await userStudyYearService.promoteStudent(student.academic_Code);
+      const res = await userStudyYearService.promoteStudent(
+        student.academicCode
+      );
       toast.success(
         res?.message ||
-        res?.data?.message ||
-        `${student.displayName} promoted successfully!`
+          res?.data?.message ||
+          `${student.displayName} promoted successfully!`
       );
       // Refresh the list
       loadUngraduatedStudents();
@@ -197,14 +213,14 @@ export default function PromoteStudents() {
       )
     )
       return;
-    
+
     setPromoteAllLoading(true);
     try {
       const res = await userStudyYearService.promoteAll();
       toast.success(
         res?.message ||
-        res?.data?.message ||
-        'All eligible students promoted successfully!'
+          res?.data?.message ||
+          'All eligible students promoted successfully!'
       );
       // Refresh the list
       loadUngraduatedStudents();
@@ -219,22 +235,25 @@ export default function PromoteStudents() {
   // Pagination logic
   const indexOfLastStudent = currentPage * studentsPerPage;
   const indexOfFirstStudent = indexOfLastStudent - studentsPerPage;
-  const currentStudents = filteredStudents.slice(indexOfFirstStudent, indexOfLastStudent);
+  const currentStudents = filteredStudents.slice(
+    indexOfFirstStudent,
+    indexOfLastStudent
+  );
   const totalPages = Math.ceil(filteredStudents.length / studentsPerPage);
 
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const paginate = pageNumber => setCurrentPage(pageNumber);
 
   // Check if any filter is applied
   const hasActiveFilters = Object.values(filters).some(value => value !== '');
 
   // Get level display name
-  const getLevelDisplay = (level) => {
+  const getLevelDisplay = level => {
     return LEVEL_LABELS[level] || level || 'N/A';
   };
 
-  // Get role badge color
-  const getLevelBadgeColor = (level) => {
-    switch(level) {
+  // Get level badge color
+  const getLevelBadgeColor = level => {
+    switch (level) {
       case 'Preparatory_Year':
         return 'badge-info';
       case 'First_Year':
@@ -245,6 +264,20 @@ export default function PromoteStudents() {
         return 'badge-danger';
       case 'Fourth_Year':
         return 'badge-purple';
+      default:
+        return 'badge-neutral';
+    }
+  };
+
+  // Get role badge color
+  const getRoleBadgeColor = role => {
+    switch (role) {
+      case 'Admin':
+        return 'badge-danger';
+      case 'Student':
+        return 'badge-success';
+      case 'Instructor':
+        return 'badge-warning';
       default:
         return 'badge-neutral';
     }
@@ -331,7 +364,9 @@ export default function PromoteStudents() {
                 className="form-control"
                 placeholder="Enter code..."
                 value={filters.academicCode}
-                onChange={e => handleFilterChange('academicCode', e.target.value)}
+                onChange={e =>
+                  handleFilterChange('academicCode', e.target.value)
+                }
               />
             </div>
 
@@ -360,7 +395,7 @@ export default function PromoteStudents() {
               >
                 <option value="">All Levels</option>
                 {Object.entries(LEVEL_LABELS)
-                  .filter(([value]) => value !== 'Graduate') // Exclude Graduate
+                  .filter(([value]) => value !== 'Graduate')
                   .map(([value, label]) => (
                     <option key={value} value={value}>
                       {label}
@@ -374,7 +409,9 @@ export default function PromoteStudents() {
               <select
                 className="form-control"
                 value={filters.departmentId}
-                onChange={e => handleFilterChange('departmentId', e.target.value)}
+                onChange={e =>
+                  handleFilterChange('departmentId', e.target.value)
+                }
               >
                 <option value="">All Departments</option>
                 {departments.map(d => (
@@ -392,7 +429,9 @@ export default function PromoteStudents() {
                 className="form-control"
                 placeholder="Enter specialization..."
                 value={filters.specialization}
-                onChange={e => handleFilterChange('specialization', e.target.value)}
+                onChange={e =>
+                  handleFilterChange('specialization', e.target.value)
+                }
               />
             </div>
 
@@ -437,11 +476,14 @@ export default function PromoteStudents() {
             </div>
           </div>
 
-          <div style={{ marginTop: 20, display: 'flex', justifyContent: 'flex-end' }}>
-            <button
-              className="btn btn-primary"
-              onClick={applyFilters}
-            >
+          <div
+            style={{
+              marginTop: 20,
+              display: 'flex',
+              justifyContent: 'flex-end',
+            }}
+          >
+            <button className="btn btn-primary" onClick={applyFilters}>
               Apply Filters
             </button>
           </div>
@@ -458,7 +500,8 @@ export default function PromoteStudents() {
         }}
       >
         <span className="badge badge-info" style={{ fontSize: '0.875rem' }}>
-          {filteredStudents.length} eligible student{filteredStudents.length !== 1 ? 's' : ''} found
+          {filteredStudents.length} eligible student
+          {filteredStudents.length !== 1 ? 's' : ''} found
         </span>
         {loading && (
           <span style={{ color: 'var(--text-light)' }}>
@@ -470,11 +513,14 @@ export default function PromoteStudents() {
       {/* Students Table */}
       <div className="card">
         {filteredStudents.length === 0 && !loading ? (
-          <div className="empty-state" style={{ padding: '40px 20px', textAlign: 'center' }}>
+          <div
+            className="empty-state"
+            style={{ padding: '40px 20px', textAlign: 'center' }}
+          >
             <FiUsers size={40} style={{ opacity: 0.3, marginBottom: 16 }} />
             <h3>No eligible students found</h3>
             <p style={{ color: 'var(--text-light)' }}>
-              {hasActiveFilters 
+              {hasActiveFilters
                 ? 'Try adjusting your filters to see more students'
                 : 'All students have been promoted or are already graduated'}
             </p>
@@ -494,68 +540,128 @@ export default function PromoteStudents() {
               <table>
                 <thead>
                   <tr>
+                    <th>Profile</th>
                     <th>Academic Code</th>
                     <th>Name</th>
+                    <th>Username</th>
                     <th>Email</th>
+                    <th>Phone</th>
                     <th>Department</th>
                     <th>Current Level</th>
-                    <th>GPA</th>
-                    <th>Credits</th>
                     <th>Gender</th>
-                    <th style={{ width: 120 }}>Action</th>
+                    <th>Roles</th>
+                    <th style={{ width: 160 }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {currentStudents.map(student => (
                     <tr key={student.id}>
                       <td>
-                        <strong>{student.academic_Code}</strong>
+                        <div className="student-avatar">
+                          {student.profilePicture ? (
+                            <img
+                              src={student.profilePicture}
+                              alt={student.displayName}
+                              style={{
+                                width: 40,
+                                height: 40,
+                                borderRadius: '50%',
+                                objectFit: 'cover',
+                              }}
+                            />
+                          ) : (
+                            <div
+                              style={{
+                                width: 40,
+                                height: 40,
+                                borderRadius: '50%',
+                                backgroundColor: '#e2e8f0',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '1rem',
+                                fontWeight: 600,
+                                color: '#4a5568',
+                              }}
+                            >
+                              {student.displayName?.charAt(0) || 'U'}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                      <td>
+                        <strong>{student.academicCode}</strong>
                       </td>
                       <td>{student.displayName}</td>
+                      <td>{student.userName}</td>
                       <td>{student.email}</td>
+                      <td>{student.phoneNumber}</td>
                       <td>
                         <span className="badge badge-neutral">
-                          {student.departmentName || 'N/A'}
+                          {student.department || 'N/A'}
                         </span>
                       </td>
                       <td>
-                        <span className={`badge ${getLevelBadgeColor(student.level)}`}>
+                        <span
+                          className={`badge ${getLevelBadgeColor(student.level)}`}
+                        >
                           {getLevelDisplay(student.level)}
                         </span>
                       </td>
-                      <td>{student.totalGPA?.toFixed(2) || '—'}</td>
                       <td>
-                        {student.totalCredits || 0} / {student.allowedCredits || '—'}
-                      </td>
-                      <td>
-                        <span className={`badge ${student.gender === 'Male' ? 'badge-info' : 'badge-pink'}`}>
+                        <span
+                          className={`badge ${student.gender === 'Male' ? 'badge-info' : 'badge-pink'}`}
+                        >
                           {student.gender || '—'}
                         </span>
                       </td>
                       <td>
-                        <button
-                          className="btn btn-sm btn-success"
-                          onClick={() => handlePromoteStudent(student)}
-                          disabled={promotingId === student.id}
-                          style={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            gap: 4,
-                            minWidth: 80
-                          }}
+                        <div
+                          style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}
                         >
-                          {promotingId === student.id ? (
-                            <>
-                              <FiLoader className="spin" size={14} />
-                              <span>...</span>
-                            </>
-                          ) : (
-                            <>
-                              <FiArrowUp size={14} />
-                              Promote
-                            </>
-                          )}
-                        </button>
+                          {student.roles?.map(role => (
+                            <span
+                              key={role}
+                              className={`badge ${getRoleBadgeColor(role)}`}
+                            >
+                              {role}
+                            </span>
+                          ))}
+                        </div>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', gap: 4 }}>
+                          <button
+                            className="btn btn-ghost btn-sm"
+                            onClick={() => setSelectedStudent(student)}
+                            title="View Details"
+                          >
+                            <FiEye size={14} />
+                          </button>
+                          <button
+                            className="btn btn-sm btn-success"
+                            onClick={() => handlePromoteStudent(student)}
+                            disabled={promotingId === student.id}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 4,
+                              minWidth: 80,
+                            }}
+                          >
+                            {promotingId === student.id ? (
+                              <>
+                                <FiLoader className="spin" size={14} />
+                                <span>...</span>
+                              </>
+                            ) : (
+                              <>
+                                <FiArrowUp size={14} />
+                                Promote
+                              </>
+                            )}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -582,11 +688,11 @@ export default function PromoteStudents() {
                 >
                   <FiChevronLeft />
                 </button>
-                
+
                 <span style={{ fontSize: '0.875rem' }}>
                   Page {currentPage} of {totalPages}
                 </span>
-                
+
                 <button
                   className="btn btn-ghost btn-sm"
                   onClick={() => paginate(currentPage + 1)}
@@ -599,6 +705,160 @@ export default function PromoteStudents() {
           </>
         )}
       </div>
+
+      {/* Student Details Modal */}
+      {selectedStudent && (
+        <div className="modal-overlay" onClick={() => setSelectedStudent(null)}>
+          <div
+            className="modal"
+            style={{ maxWidth: 600 }}
+            onClick={e => e.stopPropagation()}
+          >
+            <h2>Student Details</h2>
+
+            <div style={{ display: 'flex', gap: 24, marginBottom: 24 }}>
+              {/* Profile Picture */}
+              <div>
+                {selectedStudent.profilePicture ? (
+                  <img
+                    src={selectedStudent.profilePicture}
+                    alt={selectedStudent.displayName}
+                    style={{
+                      width: 100,
+                      height: 100,
+                      borderRadius: '50%',
+                      objectFit: 'cover',
+                    }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      width: 100,
+                      height: 100,
+                      borderRadius: '50%',
+                      backgroundColor: '#e2e8f0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '2.5rem',
+                      fontWeight: 600,
+                      color: '#4a5568',
+                    }}
+                  >
+                    {selectedStudent.displayName?.charAt(0) || 'U'}
+                  </div>
+                )}
+              </div>
+
+              {/* Basic Info */}
+              <div style={{ flex: 1 }}>
+                <h3 style={{ marginBottom: 8 }}>
+                  {selectedStudent.displayName}
+                </h3>
+                <p style={{ color: 'var(--text-light)', marginBottom: 4 }}>
+                  @{selectedStudent.userName}
+                </p>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {selectedStudent.roles?.map(role => (
+                    <span
+                      key={role}
+                      className={`badge ${getRoleBadgeColor(role)}`}
+                    >
+                      {role}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, 1fr)',
+                gap: 16,
+              }}
+            >
+              <div>
+                <label
+                  style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}
+                >
+                  Academic Code
+                </label>
+                <p>
+                  <strong>{selectedStudent.academicCode}</strong>
+                </p>
+              </div>
+
+              <div>
+                <label
+                  style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}
+                >
+                  Email
+                </label>
+                <p>{selectedStudent.email}</p>
+              </div>
+
+              <div>
+                <label
+                  style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}
+                >
+                  Phone Number
+                </label>
+                <p>{selectedStudent.phoneNumber}</p>
+              </div>
+
+              <div>
+                <label
+                  style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}
+                >
+                  Department
+                </label>
+                <p>{selectedStudent.department || 'N/A'}</p>
+              </div>
+
+              <div>
+                <label
+                  style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}
+                >
+                  Level
+                </label>
+                <p>
+                  <span
+                    className={`badge ${getLevelBadgeColor(selectedStudent.level)}`}
+                  >
+                    {getLevelDisplay(selectedStudent.level)}
+                  </span>
+                </p>
+              </div>
+
+              <div>
+                <label
+                  style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}
+                >
+                  Gender
+                </label>
+                <p>
+                  <span
+                    className={`badge ${selectedStudent.gender === 'Male' ? 'badge-info' : 'badge-pink'}`}
+                  >
+                    {selectedStudent.gender}
+                  </span>
+                </p>
+              </div>
+            </div>
+
+            <div className="form-actions" style={{ marginTop: 24 }}>
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={() => setSelectedStudent(null)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <style jsx>{`
         @keyframes slideDown {
@@ -667,6 +927,12 @@ export default function PromoteStudents() {
         .btn-success:disabled {
           opacity: 0.5;
           cursor: not-allowed;
+        }
+
+        .student-avatar {
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
       `}</style>
     </div>

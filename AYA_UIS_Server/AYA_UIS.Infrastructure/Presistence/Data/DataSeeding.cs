@@ -270,10 +270,10 @@ public class DataSeeding : IDataSeeding
             var adminUser = new User()
             {
                 DisplayName = "Admin User",
-                Email = "admin@gmail.com",
+                Email = "admin@akhbaracademy.com",
                 UserName = "Admin123",
                 PhoneNumber = "0123456789",
-                Academic_Code = "220500",
+                AcademicCode = "220500",
                 Level = null,
                 Specialization = null,
                 TotalCredits = null,

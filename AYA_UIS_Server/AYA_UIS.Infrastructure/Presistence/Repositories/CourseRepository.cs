@@ -18,6 +18,7 @@ namespace AYA_UIS.Infrastructure.Presistence.Repositories
         {
             // Start with IQueryable - NO ToListAsync() yet!
             var courses = _dbContext.Courses
+                .Include(d => d.Department)
                 .AsNoTracking()
                 .AsQueryable(); // This is IQueryable
 

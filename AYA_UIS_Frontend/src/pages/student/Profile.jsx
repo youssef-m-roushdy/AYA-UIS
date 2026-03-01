@@ -124,7 +124,7 @@ export default function Profile() {
             <InfoItem
               icon={<FiAward />}
               label="Department"
-              value={user?.departmentName || '—'}
+              value={user?.department || '—'}
             />
             <InfoItem
               icon={<FiAward />}

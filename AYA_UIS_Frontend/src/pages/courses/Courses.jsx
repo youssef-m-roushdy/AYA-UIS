@@ -2,11 +2,11 @@ import React, { useEffect, useState, useCallback } from 'react';
 import {
   FiPlus,
   FiBook,
-  FiUpload,
   FiList,
   FiFilter,
   FiX,
   FiToggleLeft,
+  FiGitBranch,
   FiToggleRight,
   FiLock,
 } from 'react-icons/fi';
@@ -17,7 +17,7 @@ import { USER_ROLES } from '../../constants';
 import { toast } from 'react-toastify';
 
 export default function Courses() {
-  const { user, hasRole, isAdmin } = useAuth(); // Use hasRole and isAdmin from context
+  const { hasRole, isAdmin } = useAuth();
   const [courses, setCourses] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -78,7 +78,6 @@ export default function Courses() {
       // Check if any filter is applied
       setFilterApplied(Object.values(filters).some(v => v !== ''));
     } catch (e) {
-      console.error('Failed to load courses:', e);
       toast.error(e?.errorMessage || 'Failed to load courses');
       setCourses([]);
     }
@@ -123,7 +122,6 @@ export default function Courses() {
   };
 
   const handleStatusToggle = async course => {
-    // Use hasRole function instead of direct role check
     if (!hasRole(USER_ROLES.ADMIN)) {
       toast.error('Only administrators can change course status');
       return;
@@ -139,30 +137,37 @@ export default function Courses() {
       });
 
       toast.success(`Course status updated to ${newStatus}`);
-      loadCourses(); // Reload to get updated data
+      loadCourses();
     } catch (err) {
-      console.log(err);
       toast.error(err?.errorMessage || 'Failed to update status');
     } finally {
       setUpdatingStatus(null);
     }
   };
 
-  const viewUploads = async id => {
-    try {
-      const res = await courseService.getUploads(id);
-      setDetail({ type: 'uploads', data: res?.data || res || [] });
-    } catch (e) {
-      toast.error('Failed to load uploads');
-    }
-  };
-
   const viewPrereqs = async id => {
     try {
       const res = await courseService.getPrerequisites(id);
-      setDetail({ type: 'prereqs', data: res?.data || res || [] });
+      setDetail({
+        type: 'prereqs',
+        data: res?.data || res || [],
+        courseId: id,
+      });
     } catch (e) {
       toast.error('Failed to load prerequisites');
+    }
+  };
+
+  const viewDependencies = async id => {
+    try {
+      const res = await courseService.getDependencies(id);
+      setDetail({
+        type: 'dependencies',
+        data: res?.data || res || [],
+        courseId: id,
+      });
+    } catch (e) {
+      toast.error('Failed to load dependencies');
     }
   };
 
@@ -182,6 +187,12 @@ export default function Courses() {
       default:
         return 'badge-neutral';
     }
+  };
+
+  // Get course name by ID for modal title
+  const getCourseName = courseId => {
+    const course = courses.find(c => c.id === courseId);
+    return course?.name || 'Course';
   };
 
   if (loading && !courses.length)
@@ -478,7 +489,7 @@ export default function Courses() {
                   <td>{c.credits}</td>
                   <td>
                     <span className="badge badge-neutral">
-                      {c.departmentName || getDepartmentName(c.departmentId)}
+                      {c.department || getDepartmentName(c.departmentId)}
                     </span>
                   </td>
                   <td>
@@ -528,19 +539,20 @@ export default function Courses() {
                           View Only
                         </span>
                       )}
-                      <button
-                        className="btn btn-ghost btn-sm"
-                        onClick={() => viewUploads(c.id)}
-                        title="View Uploads"
-                      >
-                        <FiUpload />
-                      </button>
+
                       <button
                         className="btn btn-ghost btn-sm"
                         onClick={() => viewPrereqs(c.id)}
-                        title="Prerequisites"
+                        title="View Prerequisites"
                       >
                         <FiList />
+                      </button>
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        onClick={() => viewDependencies(c.id)}
+                        title="View Dependencies"
+                      >
+                        <FiGitBranch />
                       </button>
                     </div>
                   </td>
@@ -630,93 +642,111 @@ export default function Courses() {
         </div>
       )}
 
-      {/* Detail Modal - Accessible to all */}
-      {detail && (
+      {/* Prerequisites Modal */}
+      {detail?.type === 'prereqs' && (
         <div className="modal-overlay" onClick={() => setDetail(null)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
-            <h2>
-              {detail.type === 'uploads' ? 'Course Uploads' : 'Prerequisites'}
-            </h2>
-            {detail.type === 'uploads' && (
-              <>
-                {detail.data?.length > 0 ? (
-                  <ul style={{ listStyle: 'none', padding: 0 }}>
-                    {detail.data.map(u => (
-                      <li
-                        key={u.id}
-                        style={{
-                          padding: '12px 0',
-                          borderBottom: '1px solid var(--border)',
-                        }}
+            <h2>Prerequisites</h2>
+            <p style={{ marginBottom: 16, color: 'var(--text-light)' }}>
+              Courses required before taking {getCourseName(detail.courseId)}
+            </p>
+            {detail.data?.length > 0 ? (
+              <ul style={{ listStyle: 'none', padding: 0 }}>
+                {detail.data.map(c => (
+                  <li
+                    key={c.id}
+                    style={{
+                      padding: '12px 0',
+                      borderBottom: '1px solid var(--border)',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <div style={{ fontWeight: 600 }}>{c.code}</div>
+                      <span
+                        className={`badge ${getStatusBadgeClass(c.status)}`}
                       >
-                        <div style={{ fontWeight: 600 }}>{u.title}</div>
-                        <div
-                          style={{
-                            color: 'var(--text-light)',
-                            fontSize: '0.875rem',
-                            marginTop: 4,
-                          }}
-                        >
-                          {u.type}
-                        </div>
-                        {u.description && (
-                          <div style={{ fontSize: '0.875rem', marginTop: 4 }}>
-                            {u.description}
-                          </div>
-                        )}
-                        {u.url && (
-                          <a
-                            href={u.url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="btn btn-ghost btn-sm"
-                            style={{ marginTop: 8 }}
-                          >
-                            View File
-                          </a>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="empty-state">
-                    No uploads found for this course
-                  </p>
-                )}
-              </>
+                        {c.status}
+                      </span>
+                    </div>
+                    <div style={{ marginTop: 4 }}>{c.name}</div>
+                    <div
+                      style={{
+                        color: 'var(--text-light)',
+                        fontSize: '0.875rem',
+                        marginTop: 4,
+                      }}
+                    >
+                      {c.credits} credits
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="empty-state">No prerequisites for this course</p>
             )}
-            {detail.type === 'prereqs' && (
-              <>
-                {detail.data?.length > 0 ? (
-                  <ul style={{ listStyle: 'none', padding: 0 }}>
-                    {detail.data.map(c => (
-                      <li
-                        key={c.id}
-                        style={{
-                          padding: '12px 0',
-                          borderBottom: '1px solid var(--border)',
-                        }}
+            <div className="form-actions">
+              <button className="btn btn-ghost" onClick={() => setDetail(null)}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Dependencies Modal */}
+      {detail?.type === 'dependencies' && (
+        <div className="modal-overlay" onClick={() => setDetail(null)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <h2>Dependencies</h2>
+            <p style={{ marginBottom: 16, color: 'var(--text-light)' }}>
+              Courses that require {getCourseName(detail.courseId)} as a
+              prerequisite
+            </p>
+            {detail.data?.length > 0 ? (
+              <ul style={{ listStyle: 'none', padding: 0 }}>
+                {detail.data.map(c => (
+                  <li
+                    key={c.id}
+                    style={{
+                      padding: '12px 0',
+                      borderBottom: '1px solid var(--border)',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <div style={{ fontWeight: 600 }}>{c.code}</div>
+                      <span
+                        className={`badge ${getStatusBadgeClass(c.status)}`}
                       >
-                        <div style={{ fontWeight: 600 }}>{c.code}</div>
-                        <div style={{ marginTop: 4 }}>{c.name}</div>
-                        <div
-                          style={{
-                            color: 'var(--text-light)',
-                            fontSize: '0.875rem',
-                            marginTop: 4,
-                          }}
-                        >
-                          {c.credits} credits
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="empty-state">
-                    No prerequisites for this course
-                  </p>
-                )}
-              </>
+                        {c.status}
+                      </span>
+                    </div>
+                    <div style={{ marginTop: 4 }}>{c.name}</div>
+                    <div
+                      style={{
+                        color: 'var(--text-light)',
+                        fontSize: '0.875rem',
+                        marginTop: 4,
+                      }}
+                    >
+                      {c.credits} credits
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="empty-state">No courses depend on this course</p>
             )}
             <div className="form-actions">
               <button className="btn btn-ghost" onClick={() => setDetail(null)}>

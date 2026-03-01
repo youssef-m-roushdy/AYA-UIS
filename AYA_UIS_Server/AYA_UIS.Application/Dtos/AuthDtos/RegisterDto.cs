@@ -29,7 +29,7 @@ namespace AYA_UIS.Application.Dtos.AuthDtos
         [Required]
         public string UserName { get; set; } = string.Empty;
         [Required]
-        public string Academic_Code { get; set; } = string.Empty;
+        public string AcademicCode { get; set; } = string.Empty;
         [Required]
         public string DisplayName { get; set; } = string.Empty;
         [Required]

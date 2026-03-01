@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { FiPlus, FiUsers, FiSearch, FiFilter, FiX } from 'react-icons/fi';
+import {
+  FiPlus,
+  FiUsers,
+  FiSearch,
+  FiFilter,
+  FiX,
+  FiEye,
+} from 'react-icons/fi';
 import { userService } from '../../services/otherServices';
 import authService from '../../services/authService';
 import departmentService from '../../services/departmentService';
@@ -11,7 +18,8 @@ export default function Students() {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  
+  const [selectedStudent, setSelectedStudent] = useState(null);
+
   // Filter states
   const [filters, setFilters] = useState({
     academicCode: '',
@@ -24,7 +32,7 @@ export default function Students() {
     minCredits: '',
     maxCredits: '',
   });
-  
+
   const [modal, setModal] = useState(null);
   const [form, setForm] = useState({
     email: '',
@@ -56,19 +64,23 @@ export default function Students() {
     try {
       // Build query params - only include non-empty values
       const params = {};
-      
+
       if (filters.academicCode) params.Academic_Code = filters.academicCode;
       if (filters.gender) params.Gender = filters.gender;
       if (filters.level) params.Level = filters.level;
-      if (filters.departmentId) params.DepartmentId = parseInt(filters.departmentId);
-      if (filters.specialization) params.Specialization = filters.specialization;
-      if (filters.minGPA) params.TotalGPA = parseFloat(filters.minGPA); // Note: API might need range params
+      if (filters.departmentId)
+        params.DepartmentId = parseInt(filters.departmentId);
+      if (filters.specialization)
+        params.Specialization = filters.specialization;
+      if (filters.minGPA) params.TotalGPA = parseFloat(filters.minGPA);
       if (filters.maxGPA) params.TotalGPA = parseFloat(filters.maxGPA);
-      if (filters.minCredits) params.TotalCredits = parseInt(filters.minCredits);
-      if (filters.maxCredits) params.AllowedCredits = parseInt(filters.maxCredits);
+      if (filters.minCredits)
+        params.TotalCredits = parseInt(filters.minCredits);
+      if (filters.maxCredits)
+        params.AllowedCredits = parseInt(filters.maxCredits);
 
       const response = await userService.getAllStudents(params);
-      console.log(response)
+
       // Handle different response structures
       let studentsData = [];
       if (response?.data) {
@@ -78,9 +90,9 @@ export default function Students() {
       } else {
         studentsData = response || [];
       }
-      
+
       setStudents(studentsData);
-      
+
       if (studentsData.length === 0) {
         toast.info('No students found matching the criteria');
       }
@@ -120,7 +132,7 @@ export default function Students() {
       toast.success('Student registered successfully');
       setModal(null);
       searchStudents(); // Refresh the list
-      
+
       // Reset form
       setForm({
         email: '',
@@ -133,7 +145,48 @@ export default function Students() {
         departmentId: '',
       });
     } catch (err) {
-      toast.error(err?.errorMessage || err?.errors?.join(', ') || 'Registration failed');
+      toast.error(
+        err?.errorMessage || err?.errors?.join(', ') || 'Registration failed'
+      );
+    }
+  };
+
+  // Get level display name
+  const getLevelDisplay = level => {
+    return LEVEL_LABELS[level] || level || 'N/A';
+  };
+
+  // Get level badge color
+  const getLevelBadgeColor = level => {
+    switch (level) {
+      case 'Preparatory_Year':
+        return 'badge-info';
+      case 'First_Year':
+        return 'badge-success';
+      case 'Second_Year':
+        return 'badge-warning';
+      case 'Third_Year':
+        return 'badge-danger';
+      case 'Fourth_Year':
+        return 'badge-purple';
+      case 'Graduate':
+        return 'badge-neutral';
+      default:
+        return 'badge-neutral';
+    }
+  };
+
+  // Get role badge color
+  const getRoleBadgeColor = role => {
+    switch (role) {
+      case 'Admin':
+        return 'badge-danger';
+      case 'Student':
+        return 'badge-success';
+      case 'Instructor':
+        return 'badge-warning';
+      default:
+        return 'badge-neutral';
     }
   };
 
@@ -221,7 +274,9 @@ export default function Students() {
                 className="form-control"
                 placeholder="Enter academic code..."
                 value={filters.academicCode}
-                onChange={e => handleFilterChange('academicCode', e.target.value)}
+                onChange={e =>
+                  handleFilterChange('academicCode', e.target.value)
+                }
               />
             </div>
 
@@ -262,7 +317,9 @@ export default function Students() {
               <select
                 className="form-control"
                 value={filters.departmentId}
-                onChange={e => handleFilterChange('departmentId', e.target.value)}
+                onChange={e =>
+                  handleFilterChange('departmentId', e.target.value)
+                }
               >
                 <option value="">All Departments</option>
                 {departments.map(d => (
@@ -280,7 +337,9 @@ export default function Students() {
                 className="form-control"
                 placeholder="Enter specialization..."
                 value={filters.specialization}
-                onChange={e => handleFilterChange('specialization', e.target.value)}
+                onChange={e =>
+                  handleFilterChange('specialization', e.target.value)
+                }
               />
             </div>
 
@@ -325,7 +384,13 @@ export default function Students() {
             </div>
           </div>
 
-          <div style={{ marginTop: 20, display: 'flex', justifyContent: 'flex-end' }}>
+          <div
+            style={{
+              marginTop: 20,
+              display: 'flex',
+              justifyContent: 'flex-end',
+            }}
+          >
             <button
               className="btn btn-primary"
               onClick={searchStudents}
@@ -357,11 +422,14 @@ export default function Students() {
       {/* Students List */}
       <div className="card">
         {students.length === 0 && !loading ? (
-          <div className="empty-state" style={{ padding: '40px 20px', textAlign: 'center' }}>
+          <div
+            className="empty-state"
+            style={{ padding: '40px 20px', textAlign: 'center' }}
+          >
             <FiUsers size={40} style={{ opacity: 0.3, marginBottom: 16 }} />
             <h3>No students found</h3>
             <p style={{ color: 'var(--text-light)' }}>
-              {hasActiveFilters 
+              {hasActiveFilters
                 ? 'Try adjusting your filters or clear them to see all students'
                 : 'Get started by registering a new student'}
             </p>
@@ -380,14 +448,16 @@ export default function Students() {
             <table>
               <thead>
                 <tr>
+                  <th>Profile</th>
                   <th>Academic Code</th>
                   <th>Name</th>
+                  <th>Username</th>
                   <th>Email</th>
+                  <th>Phone</th>
                   <th>Department</th>
                   <th>Level</th>
-                  <th>GPA</th>
-                  <th>Credits</th>
                   <th>Gender</th>
+                  <th>Roles</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -395,38 +465,85 @@ export default function Students() {
                 {students.map(student => (
                   <tr key={student.id}>
                     <td>
-                      <strong>{student.academic_Code}</strong>
+                      <div className="student-avatar">
+                        {student.profilePicture ? (
+                          <img
+                            src={student.profilePicture}
+                            alt={student.displayName}
+                            style={{
+                              width: 40,
+                              height: 40,
+                              borderRadius: '50%',
+                              objectFit: 'cover',
+                            }}
+                          />
+                        ) : (
+                          <div
+                            style={{
+                              width: 40,
+                              height: 40,
+                              borderRadius: '50%',
+                              backgroundColor: '#e2e8f0',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '1rem',
+                              fontWeight: 600,
+                              color: '#4a5568',
+                            }}
+                          >
+                            {student.displayName?.charAt(0) || 'U'}
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td>
+                      <strong>{student.academicCode}</strong>
                     </td>
                     <td>{student.displayName}</td>
+                    <td>{student.userName}</td>
                     <td>{student.email}</td>
+                    <td>{student.phoneNumber}</td>
                     <td>
                       <span className="badge badge-neutral">
-                        {student.departmentName || 'N/A'}
+                        {student.department || 'N/A'}
                       </span>
                     </td>
                     <td>
-                      <span className="badge badge-info">
-                        {LEVEL_LABELS[student.level] || student.level || 'N/A'}
+                      <span
+                        className={`badge ${getLevelBadgeColor(student.level)}`}
+                      >
+                        {getLevelDisplay(student.level)}
                       </span>
                     </td>
-                    <td>{student.totalGPA?.toFixed(2) || '—'}</td>
                     <td>
-                      {student.totalCredits || 0} / {student.allowedCredits || '—'}
-                    </td>
-                    <td>
-                      <span className={`badge ${student.gender === 'Male' ? 'badge-info' : 'badge-pink'}`}>
+                      <span
+                        className={`badge ${student.gender === 'Male' ? 'badge-info' : 'badge-pink'}`}
+                      >
                         {student.gender || '—'}
                       </span>
                     </td>
                     <td>
+                      <div
+                        style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}
+                      >
+                        {student.roles?.map(role => (
+                          <span
+                            key={role}
+                            className={`badge ${getRoleBadgeColor(role)}`}
+                          >
+                            {role}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+                    <td>
                       <button
                         className="btn btn-ghost btn-sm"
-                        onClick={() => {
-                          // View student details
-                          setStudent(student);
-                        }}
+                        onClick={() => setSelectedStudent(student)}
+                        title="View Details"
                       >
-                        View Details
+                        <FiEye /> View
                       </button>
                     </td>
                   </tr>
@@ -437,7 +554,161 @@ export default function Students() {
         )}
       </div>
 
-      {/* Register Modal */}
+      {/* Student Details Modal */}
+      {selectedStudent && (
+        <div className="modal-overlay" onClick={() => setSelectedStudent(null)}>
+          <div
+            className="modal"
+            style={{ maxWidth: 600 }}
+            onClick={e => e.stopPropagation()}
+          >
+            <h2>Student Details</h2>
+
+            <div style={{ display: 'flex', gap: 24, marginBottom: 24 }}>
+              {/* Profile Picture */}
+              <div>
+                {selectedStudent.profilePicture ? (
+                  <img
+                    src={selectedStudent.profilePicture}
+                    alt={selectedStudent.displayName}
+                    style={{
+                      width: 100,
+                      height: 100,
+                      borderRadius: '50%',
+                      objectFit: 'cover',
+                    }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      width: 100,
+                      height: 100,
+                      borderRadius: '50%',
+                      backgroundColor: '#e2e8f0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '2.5rem',
+                      fontWeight: 600,
+                      color: '#4a5568',
+                    }}
+                  >
+                    {selectedStudent.displayName?.charAt(0) || 'U'}
+                  </div>
+                )}
+              </div>
+
+              {/* Basic Info */}
+              <div style={{ flex: 1 }}>
+                <h3 style={{ marginBottom: 8 }}>
+                  {selectedStudent.displayName}
+                </h3>
+                <p style={{ color: 'var(--text-light)', marginBottom: 4 }}>
+                  @{selectedStudent.userName}
+                </p>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {selectedStudent.roles?.map(role => (
+                    <span
+                      key={role}
+                      className={`badge ${getRoleBadgeColor(role)}`}
+                    >
+                      {role}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, 1fr)',
+                gap: 16,
+              }}
+            >
+              <div>
+                <label
+                  style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}
+                >
+                  Academic Code
+                </label>
+                <p>
+                  <strong>{selectedStudent.academic_Code}</strong>
+                </p>
+              </div>
+
+              <div>
+                <label
+                  style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}
+                >
+                  Email
+                </label>
+                <p>{selectedStudent.email}</p>
+              </div>
+
+              <div>
+                <label
+                  style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}
+                >
+                  Phone Number
+                </label>
+                <p>{selectedStudent.phoneNumber}</p>
+              </div>
+
+              <div>
+                <label
+                  style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}
+                >
+                  Department
+                </label>
+                <p>{selectedStudent.department || 'N/A'}</p>
+              </div>
+
+              <div>
+                <label
+                  style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}
+                >
+                  Level
+                </label>
+                <p>
+                  <span
+                    className={`badge ${getLevelBadgeColor(selectedStudent.level)}`}
+                  >
+                    {getLevelDisplay(selectedStudent.level)}
+                  </span>
+                </p>
+              </div>
+
+              <div>
+                <label
+                  style={{ fontSize: '0.75rem', color: 'var(--text-light)' }}
+                >
+                  Gender
+                </label>
+                <p>
+                  <span
+                    className={`badge ${selectedStudent.gender === 'Male' ? 'badge-info' : 'badge-pink'}`}
+                  >
+                    {selectedStudent.gender}
+                  </span>
+                </p>
+              </div>
+            </div>
+
+            <div className="form-actions" style={{ marginTop: 24 }}>
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={() => setSelectedStudent(null)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Register Modal (keep existing) */}
       {modal === 'register' && (
         <div className="modal-overlay" onClick={() => setModal(null)}>
           <div
@@ -582,6 +853,37 @@ export default function Students() {
         .badge-pink {
           background-color: #fce7f3;
           color: #9d174d;
+        }
+
+        .badge-purple {
+          background-color: #ede9fe;
+          color: #6d28d9;
+        }
+
+        .badge-danger {
+          background-color: #fee2e2;
+          color: #991b1b;
+        }
+
+        .badge-warning {
+          background-color: #fef3c7;
+          color: #92400e;
+        }
+
+        .badge-success {
+          background-color: #d1fae5;
+          color: #065f46;
+        }
+
+        .badge-info {
+          background-color: #dbeafe;
+          color: #1e40af;
+        }
+
+        .student-avatar {
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
       `}</style>
     </div>

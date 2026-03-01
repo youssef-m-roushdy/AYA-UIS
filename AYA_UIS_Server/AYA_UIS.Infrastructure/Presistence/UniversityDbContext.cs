@@ -35,7 +35,7 @@ namespace AYA_UIS.Infrastructure.Presistence
             builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
             builder.Entity<User>()
-                   .HasIndex(u => u.Academic_Code)
+                   .HasIndex(u => u.AcademicCode)
                    .IsUnique();
         }
 

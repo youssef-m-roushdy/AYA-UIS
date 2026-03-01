@@ -10,7 +10,7 @@ import {
   FiShield,
   FiUserCheck,
 } from 'react-icons/fi';
-import { LEVEL_LABELS, GRADE_LABELS } from '../../constants';
+import { LEVEL_LABELS } from '../../constants';
 import departmentService from '../../services/departmentService';
 import courseService from '../../services/courseService';
 import registrationService from '../../services/registrationService';
@@ -18,17 +18,8 @@ import { userStudyYearService } from '../../services/otherServices';
 import './Dashboard.css';
 
 export default function Dashboard() {
-  const { 
-    user, 
-    isAdmin, 
-    isStudent, 
-    isInstructor,
-    roles,
-    primaryRole,
-    hasRole,
-    hasAnyRole 
-  } = useAuth();
-  
+  const { user, roles, primaryRole, hasRole, hasAnyRole } = useAuth();
+
   const [stats, setStats] = useState({});
   const [loading, setLoading] = useState(true);
 
@@ -41,11 +32,19 @@ export default function Dashboard() {
         // Admin data
         if (hasRole('Admin')) {
           promises.push(
-            departmentService.getAll()
-              .then(res => ({ type: 'departments', data: res?.data?.length || res?.length || 0 }))
+            departmentService
+              .getAll()
+              .then(res => ({
+                type: 'departments',
+                data: res?.data?.length || res?.length || 0,
+              }))
               .catch(() => ({ type: 'departments', data: 0 })),
-            courseService.getAll()
-              .then(res => ({ type: 'courses', data: res?.data?.length || res?.length || 0 }))
+            courseService
+              .getAll()
+              .then(res => ({
+                type: 'courses',
+                data: res?.data?.length || res?.length || 0,
+              }))
               .catch(() => ({ type: 'courses', data: 0 }))
           );
         }
@@ -53,13 +52,15 @@ export default function Dashboard() {
         // Student data
         if (hasRole('Student')) {
           promises.push(
-            registrationService.getMyCourses()
+            registrationService
+              .getMyCourses()
               .then(res => {
                 const regData = res?.data || res || [];
                 return { type: 'studentCourses', data: regData };
               })
               .catch(() => ({ type: 'studentCourses', data: [] })),
-            userStudyYearService.getMyTimeline()
+            userStudyYearService
+              .getMyTimeline()
               .then(res => ({ type: 'timeline', data: res?.data || res }))
               .catch(() => ({ type: 'timeline', data: null }))
           );
@@ -68,15 +69,19 @@ export default function Dashboard() {
         // Instructor data (if you have instructor-specific data)
         if (hasRole('Instructor')) {
           promises.push(
-            courseService.getInstructorCourses()
-              .then(res => ({ type: 'instructorCourses', data: res?.data?.length || res?.length || 0 }))
+            courseService
+              .getInstructorCourses()
+              .then(res => ({
+                type: 'instructorCourses',
+                data: res?.data?.length || res?.length || 0,
+              }))
               .catch(() => ({ type: 'instructorCourses', data: 0 }))
           );
         }
 
         // Wait for all promises to resolve
         const results = await Promise.all(promises);
-        
+
         // Process results
         const newStats = {};
         results.forEach(result => {
@@ -87,12 +92,13 @@ export default function Dashboard() {
             newStats.passedCourses = result.data.filter(r => r.isPassed).length;
           }
           if (result.type === 'timeline') newStats.timeline = result.data;
-          if (result.type === 'instructorCourses') newStats.instructorCourses = result.data;
+          if (result.type === 'instructorCourses')
+            newStats.instructorCourses = result.data;
         });
 
         setStats(newStats);
       } catch (e) {
-        console.error('Error loading dashboard data:', e);
+        // console.error('Error loading dashboard data:', e);
       } finally {
         setLoading(false);
       }
@@ -102,8 +108,8 @@ export default function Dashboard() {
   }, [hasRole]); // Re-run when roles change
 
   // Get role badge color
-  const getRoleBadgeColor = (role) => {
-    switch(role) {
+  const getRoleBadgeColor = role => {
+    switch (role) {
       case 'Admin':
         return 'badge-danger';
       case 'Student':
@@ -128,7 +134,9 @@ export default function Dashboard() {
       <div className="dashboard-welcome">
         <div>
           <h1>Welcome back, {user?.displayName || 'User'}!</h1>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
+          <div
+            style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}
+          >
             {/* Display all user roles */}
             {roles?.map(role => (
               <span key={role} className={`badge ${getRoleBadgeColor(role)}`}>
@@ -147,7 +155,7 @@ export default function Dashboard() {
             {hasRole('Admin') && 'Administrator Dashboard'}
           </p>
         </div>
-        
+
         {/* GPA Display - Only for students */}
         {hasRole('Student') && user?.totalGPA != null && (
           <div className="gpa-badge">
@@ -228,7 +236,14 @@ export default function Dashboard() {
           {/* Academic Timeline */}
           {stats.timeline && (
             <div className="card">
-              <h3 style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <h3
+                style={{
+                  marginBottom: 16,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                }}
+              >
                 <FiTrendingUp />
                 Academic Timeline
               </h3>
@@ -236,7 +251,8 @@ export default function Dashboard() {
                 <div className="timeline-item">
                   <strong>Current Level:</strong>{' '}
                   <span className="badge badge-info">
-                    {stats.timeline.currentLevelName}
+                    {LEVEL_LABELS[stats.timeline.currentLevel] ||
+                      stats.timeline.currentLevel}
                   </span>
                 </div>
                 <div className="timeline-item">
@@ -295,21 +311,29 @@ export default function Dashboard() {
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
           {hasRole('Admin') && (
             <>
-              <button className="btn btn-primary btn-sm">Manage Departments</button>
+              <button className="btn btn-primary btn-sm">
+                Manage Departments
+              </button>
               <button className="btn btn-primary btn-sm">Add Course</button>
-              <button className="btn btn-primary btn-sm">Register Student</button>
+              <button className="btn btn-primary btn-sm">
+                Register Student
+              </button>
             </>
           )}
           {hasRole('Student') && (
             <>
-              <button className="btn btn-primary btn-sm">View My Courses</button>
+              <button className="btn btn-primary btn-sm">
+                View My Courses
+              </button>
               <button className="btn btn-primary btn-sm">Check Schedule</button>
               <button className="btn btn-primary btn-sm">View Grades</button>
             </>
           )}
           {hasRole('Instructor') && (
             <>
-              <button className="btn btn-primary btn-sm">My Teaching Schedule</button>
+              <button className="btn btn-primary btn-sm">
+                My Teaching Schedule
+              </button>
               <button className="btn btn-primary btn-sm">Grade Students</button>
             </>
           )}
