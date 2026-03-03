@@ -6,7 +6,7 @@ using AYA_UIS.Domain.Enums;
 
 namespace AYA_UIS.Domain.Queries
 {
-    public class DepartmentCourseQuery
+    public class DepartmentCourseQuery : PaginationQuery
     {
         public CourseStatus? Status { get; set; }
     }

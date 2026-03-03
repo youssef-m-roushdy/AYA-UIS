@@ -3,6 +3,7 @@ using AYA_UIS.Domain.Entities.Models;
 using AYA_UIS.Domain.Enums;
 using AYA_UIS.Domain.Queries;
 using AYA_UIS.Shared.Exceptions;
+using AYA_UIS.Infrastructure.Presistence.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Presistence;
 
@@ -12,6 +13,38 @@ namespace AYA_UIS.Infrastructure.Presistence.Repositories
     {
         public CourseRepository(UniversityDbContext dbContext) : base(dbContext)
         {
+        }
+
+        public async Task<(IEnumerable<Course> Data, int TotalCount)> GetFilteredCoursesWithPaginationAsync(CourseQuery query)
+        {
+            var courses = _dbContext.Courses
+                .Include(d => d.Department)
+                .AsNoTracking()
+                .AsQueryable();
+
+            if (query.Status.HasValue)
+                courses = courses.Where(c => c.Status == query.Status.Value);
+
+            if (!string.IsNullOrEmpty(query.Code))
+                courses = courses.Where(c => c.Code.Contains(query.Code));
+
+            if (!string.IsNullOrEmpty(query.Name))
+                courses = courses.Where(c => c.Name.Contains(query.Name));
+
+            if (query.DepartmentId.HasValue)
+                courses = courses.Where(c => c.DepartmentId == query.DepartmentId.Value);
+
+            // Apply sorting
+            courses = courses.ApplySorting(query.SortBy ?? "Id", query.SortDirection);
+
+            // Get total count before pagination
+            var totalCount = await courses.CountAsync();
+
+            // Apply pagination
+            courses = courses.ApplyPagination(query);
+
+            var data = await courses.ToListAsync();
+            return (data, totalCount);
         }
 
         public async Task<IEnumerable<Course>> GetFilteredCoursesAsync(CourseQuery query)
@@ -43,6 +76,29 @@ namespace AYA_UIS.Infrastructure.Presistence.Repositories
             return await _dbContext.Courses
                 .Include(c => c.CourseUpload)
                 .FirstOrDefaultAsync(c => c.Id == id);
+        }
+
+        public async Task<(IEnumerable<Course> Data, int TotalCount)> GetDepartmentCoursesWithPaginationAsync(int departmentId, DepartmentCourseQuery query)
+        {
+            var queryable = _dbContext.Courses
+                .Where(c => c.DepartmentId == departmentId)
+                .AsNoTracking()
+                .AsQueryable();
+
+            if (query.Status.HasValue)
+                queryable = queryable.Where(c => c.Status == query.Status.Value);
+
+            // Apply sorting
+            queryable = queryable.ApplySorting(query.SortBy ?? "Id", query.SortDirection);
+
+            // Get total count before pagination
+            var totalCount = await queryable.CountAsync();
+
+            // Apply pagination
+            queryable = queryable.ApplyPagination(query);
+
+            var data = await queryable.ToListAsync();
+            return (data, totalCount);
         }
 
         public Task<IEnumerable<Course>> GetDepartmentCoursesAsync(int departmentId, DepartmentCourseQuery query)

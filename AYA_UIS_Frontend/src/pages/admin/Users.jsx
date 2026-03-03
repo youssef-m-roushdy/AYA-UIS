@@ -6,9 +6,6 @@ import {
   FiMail,
   FiUser,
   FiSearch,
-  FiBook,
-  FiAward,
-  FiDollarSign,
   FiGrid,
 } from 'react-icons/fi';
 import userService from '../../services/userService';
@@ -31,12 +28,8 @@ export default function Users() {
     gender: '',
     level: '',
     departmentId: '',
-    specialization: '',
-    minGPA: '',
-    maxGPA: '',
-    minCredits: '',
-    maxCredits: '',
-    name: '',
+    role: '',
+    searchTerm: '',
   });
   const [filterApplied, setFilterApplied] = useState(false);
 
@@ -51,9 +44,6 @@ export default function Users() {
     { value: 'DisplayName', label: 'Name' },
     { value: 'Email', label: 'Email' },
     { value: 'AcademicCode', label: 'Academic Code' },
-    { value: 'Level', label: 'Level' },
-    { value: 'TotalGPA', label: 'GPA' },
-    { value: 'TotalCredits', label: 'Total Credits' },
   ];
 
   const levelOptions = [
@@ -118,21 +108,14 @@ export default function Users() {
       const filterParams = {};
 
       // Add all filters
+      if (filters.role) filterParams.Role = filters.role;
       if (filters.level) filterParams.Level = filters.level;
       if (filters.departmentId)
         filterParams.DepartmentId = parseInt(filters.departmentId);
       if (filters.academicCode)
         filterParams.Academic_Code = filters.academicCode;
       if (filters.gender) filterParams.Gender = filters.gender;
-      if (filters.specialization)
-        filterParams.Specialization = filters.specialization;
-      if (filters.minGPA) filterParams.MinGPA = parseFloat(filters.minGPA);
-      if (filters.maxGPA) filterParams.MaxGPA = parseFloat(filters.maxGPA);
-      if (filters.minCredits)
-        filterParams.MinCredits = parseInt(filters.minCredits);
-      if (filters.maxCredits)
-        filterParams.MaxCredits = parseInt(filters.maxCredits);
-      if (filters.name) filterParams.Name = filters.name;
+      if (filters.searchTerm) filterParams.SearchTerm = filters.searchTerm;
 
       const response = await userService.getAllPaginated(
         filterParams,
@@ -153,7 +136,7 @@ export default function Users() {
       } else {
         usersData = response || [];
       }
-
+      console.log('Loaded users:', usersData);
       setUsers(usersData);
       if (paginationData) {
         setPagination(paginationData);
@@ -182,12 +165,8 @@ export default function Users() {
       gender: '',
       level: '',
       departmentId: '',
-      specialization: '',
-      minGPA: '',
-      maxGPA: '',
-      minCredits: '',
-      maxCredits: '',
-      name: '',
+      role: '',
+      searchTerm: '',
     });
     setCurrentPage(1);
   };
@@ -202,32 +181,16 @@ export default function Users() {
     setCurrentPage(1);
   };
 
-  const getLevelColor = level => {
-    switch (level) {
-      case 'Preparatory_Year':
-        return 'badge-info';
-      case 'First_Year':
-        return 'badge-primary';
-      case 'Second_Year':
-        return 'badge-warning';
-      case 'Third_Year':
-        return 'badge-success';
-      case 'Fourth_Year':
-        return 'badge-purple';
-      case 'Graduate':
-        return 'badge-neutral';
-      default:
-        return 'badge-neutral';
-    }
+  const getRoleColor = roles => {
+    if (!roles || roles.length === 0) return 'badge-neutral';
+    if (roles.includes('Admin')) return 'badge-danger';
+    if (roles.includes('Instructor')) return 'badge-warning';
+    if (roles.includes('Student')) return 'badge-success';
+    return 'badge-neutral';
   };
 
   const getGenderColor = gender => {
     return gender === 'Male' ? 'badge-info' : 'badge-pink';
-  };
-
-  const formatLevel = level => {
-    const found = levelOptions.find(opt => opt.value === level);
-    return found ? found.label : level;
   };
 
   if (!hasRole('Admin')) {
@@ -254,7 +217,7 @@ export default function Users() {
         </div>
       </div>
 
-      {/* Actions Bar */}
+      {/* Actions Bar - Same as Students component */}
       <div
         style={{
           display: 'flex',
@@ -272,11 +235,6 @@ export default function Users() {
           >
             <FiFilter />
             Filters
-            {filterApplied && (
-              <span className="badge badge-primary" style={{ marginLeft: 8 }}>
-                •
-              </span>
-            )}
           </button>
         </div>
 
@@ -328,13 +286,13 @@ export default function Users() {
               alignItems: 'flex-end',
             }}
           >
-            {/* Level */}
+            {/* Role */}
             <FilterSelect
-              label="Level"
-              value={filters.level}
-              onChange={val => handleFilterChange('level', val)}
-              options={levelFilterOptions}
-              placeholder="All Levels"
+              label="Role"
+              value={filters.role}
+              onChange={val => handleFilterChange('role', val)}
+              options={roleFilterOptions}
+              placeholder="All Roles"
               icon={<FiUser size={13} />}
             />
 
@@ -404,7 +362,7 @@ export default function Users() {
               />
             </div>
 
-            {/* Specialization — plain text input */}
+            {/* Search Term */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               <span
                 style={{
@@ -415,60 +373,7 @@ export default function Users() {
                   color: '#94a3b8',
                 }}
               >
-                Specialization
-              </span>
-              <input
-                type="text"
-                placeholder="Enter specialization..."
-                value={filters.specialization}
-                onChange={e =>
-                  handleFilterChange('specialization', e.target.value)
-                }
-                style={{
-                  padding: '0 12px',
-                  height: '38px',
-                  border: '1.5px solid #e2e8f0',
-                  borderRadius: '10px',
-                  fontSize: '13.5px',
-                  fontFamily: "'DM Sans', sans-serif",
-                  outline: 'none',
-                  transition: 'border-color 0.15s, box-shadow 0.15s',
-                  minWidth: '160px',
-                }}
-                onFocus={e => {
-                  e.target.style.borderColor = '#6366f1';
-                  e.target.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.12)';
-                }}
-                onBlur={e => {
-                  e.target.style.borderColor = '#e2e8f0';
-                  e.target.style.boxShadow = 'none';
-                }}
-              />
-            </div>
-          </div>
-
-          {/* Search and Range Filters */}
-          <div
-            style={{
-              display: 'flex',
-              gap: 12,
-              flexWrap: 'wrap',
-              alignItems: 'flex-end',
-              marginTop: 16,
-            }}
-          >
-            {/* Search by Name */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.07em',
-                  color: '#94a3b8',
-                }}
-              >
-                Name
+                Search
               </span>
               <div style={{ position: 'relative' }}>
                 <FiSearch
@@ -485,9 +390,9 @@ export default function Users() {
                 <input
                   type="text"
                   placeholder="Search by name..."
-                  value={filters.name}
+                  value={filters.searchTerm}
                   onChange={e =>
-                    handleFilterChange('name', e.target.value)
+                    handleFilterChange('searchTerm', e.target.value)
                   }
                   style={{
                     padding: '0 12px 0 32px',
@@ -502,8 +407,7 @@ export default function Users() {
                   }}
                   onFocus={e => {
                     e.target.style.borderColor = '#6366f1';
-                    e.target.style.boxShadow =
-                      '0 0 0 3px rgba(99,102,241,0.12)';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.12)';
                   }}
                   onBlur={e => {
                     e.target.style.borderColor = '#e2e8f0';
@@ -513,245 +417,54 @@ export default function Users() {
               </div>
             </div>
 
-            {/* Min GPA */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span
+            {/* Active filter chips */}
+            {filterApplied && (
+              <div
                 style={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.07em',
-                  color: '#94a3b8',
+                  marginTop: 16,
+                  paddingTop: 14,
+                  borderTop: '1px solid #f1f5f9',
+                  display: 'flex',
+                  gap: 6,
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
                 }}
               >
-                Min GPA
-              </span>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                max="4"
-                placeholder="0.0"
-                value={filters.minGPA}
-                onChange={e => handleFilterChange('minGPA', e.target.value)}
-                style={{
-                  padding: '0 12px',
-                  height: '38px',
-                  border: '1.5px solid #e2e8f0',
-                  borderRadius: '10px',
-                  fontSize: '13.5px',
-                  fontFamily: "'DM Sans', sans-serif",
-                  outline: 'none',
-                  transition: 'border-color 0.15s, box-shadow 0.15s',
-                  minWidth: '100px',
-                }}
-                onFocus={e => {
-                  e.target.style.borderColor = '#6366f1';
-                  e.target.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.12)';
-                }}
-                onBlur={e => {
-                  e.target.style.borderColor = '#e2e8f0';
-                  e.target.style.boxShadow = 'none';
-                }}
-              />
-            </div>
-
-            {/* Max GPA */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.07em',
-                  color: '#94a3b8',
-                }}
-              >
-                Max GPA
-              </span>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                max="4"
-                placeholder="4.0"
-                value={filters.maxGPA}
-                onChange={e => handleFilterChange('maxGPA', e.target.value)}
-                style={{
-                  padding: '0 12px',
-                  height: '38px',
-                  border: '1.5px solid #e2e8f0',
-                  borderRadius: '10px',
-                  fontSize: '13.5px',
-                  fontFamily: "'DM Sans', sans-serif",
-                  outline: 'none',
-                  transition: 'border-color 0.15s, box-shadow 0.15s',
-                  minWidth: '100px',
-                }}
-                onFocus={e => {
-                  e.target.style.borderColor = '#6366f1';
-                  e.target.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.12)';
-                }}
-                onBlur={e => {
-                  e.target.style.borderColor = '#e2e8f0';
-                  e.target.style.boxShadow = 'none';
-                }}
-              />
-            </div>
-
-            {/* Min Credits */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.07em',
-                  color: '#94a3b8',
-                }}
-              >
-                Min Credits
-              </span>
-              <input
-                type="number"
-                min="0"
-                placeholder="0"
-                value={filters.minCredits}
-                onChange={e => handleFilterChange('minCredits', e.target.value)}
-                style={{
-                  padding: '0 12px',
-                  height: '38px',
-                  border: '1.5px solid #e2e8f0',
-                  borderRadius: '10px',
-                  fontSize: '13.5px',
-                  fontFamily: "'DM Sans', sans-serif",
-                  outline: 'none',
-                  transition: 'border-color 0.15s, box-shadow 0.15s',
-                  minWidth: '100px',
-                }}
-                onFocus={e => {
-                  e.target.style.borderColor = '#6366f1';
-                  e.target.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.12)';
-                }}
-                onBlur={e => {
-                  e.target.style.borderColor = '#e2e8f0';
-                  e.target.style.boxShadow = 'none';
-                }}
-              />
-            </div>
-
-            {/* Max Credits */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.07em',
-                  color: '#94a3b8',
-                }}
-              >
-                Max Credits
-              </span>
-              <input
-                type="number"
-                min="0"
-                placeholder="30"
-                value={filters.maxCredits}
-                onChange={e => handleFilterChange('maxCredits', e.target.value)}
-                style={{
-                  padding: '0 12px',
-                  height: '38px',
-                  border: '1.5px solid #e2e8f0',
-                  borderRadius: '10px',
-                  fontSize: '13.5px',
-                  fontFamily: "'DM Sans', sans-serif",
-                  outline: 'none',
-                  transition: 'border-color 0.15s, box-shadow 0.15s',
-                  minWidth: '100px',
-                }}
-                onFocus={e => {
-                  e.target.style.borderColor = '#6366f1';
-                  e.target.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.12)';
-                }}
-                onBlur={e => {
-                  e.target.style.borderColor = '#e2e8f0';
-                  e.target.style.boxShadow = 'none';
-                }}
-              />
-            </div>
+                <span
+                  style={{
+                    fontSize: '0.8125rem',
+                    color: '#94a3b8',
+                    fontWeight: 500,
+                  }}
+                >
+                  Active:
+                </span>
+                {filters.role && (
+                  <span className="badge badge-info">Role: {filters.role}</span>
+                )}
+                {filters.gender && (
+                  <span className="badge badge-info">
+                    Gender: {filters.gender}
+                  </span>
+                )}
+                {filters.departmentId && (
+                  <span className="badge badge-info">
+                    Department:{' '}
+                    {
+                      departments.find(
+                        d => d.id === parseInt(filters.departmentId)
+                      )?.name
+                    }
+                  </span>
+                )}
+                {filters.academicCode && (
+                  <span className="badge badge-info">
+                    Code: {filters.academicCode}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
-
-          {/* Active filter chips */}
-          {filterApplied && (
-            <div
-              style={{
-                marginTop: 16,
-                paddingTop: 14,
-                borderTop: '1px solid #f1f5f9',
-                display: 'flex',
-                gap: 6,
-                flexWrap: 'wrap',
-                alignItems: 'center',
-              }}
-            >
-              <span
-                style={{
-                  fontSize: '0.8125rem',
-                  color: '#94a3b8',
-                  fontWeight: 500,
-                }}
-              >
-                Active:
-              </span>
-              {filters.name && (
-                <span className="badge badge-info">
-                  Name: "{filters.name}"
-                </span>
-              )}
-              {filters.level && (
-                <span className="badge badge-info">
-                  Level: {formatLevel(filters.level)}
-                </span>
-              )}
-              {filters.gender && (
-                <span className="badge badge-info">
-                  Gender: {filters.gender}
-                </span>
-              )}
-              {filters.departmentId && (
-                <span className="badge badge-info">
-                  Department:{' '}
-                  {
-                    departments.find(
-                      d => d.id === parseInt(filters.departmentId)
-                    )?.name
-                  }
-                </span>
-              )}
-              {filters.academicCode && (
-                <span className="badge badge-info">
-                  Code: {filters.academicCode}
-                </span>
-              )}
-              {filters.specialization && (
-                <span className="badge badge-info">
-                  Spec: {filters.specialization}
-                </span>
-              )}
-              {(filters.minGPA || filters.maxGPA) && (
-                <span className="badge badge-info">
-                  GPA: {filters.minGPA || '0'} - {filters.maxGPA || '4'}
-                </span>
-              )}
-              {(filters.minCredits || filters.maxCredits) && (
-                <span className="badge badge-info">
-                  Credits: {filters.minCredits || '0'} -{' '}
-                  {filters.maxCredits || '∞'}
-                </span>
-              )}
-            </div>
-          )}
         </div>
       )}
 
@@ -775,7 +488,7 @@ export default function Users() {
         )}
       </div>
 
-      {/* Users Table */}
+      {/* Users Table - Same as Students component */}
       <div className="card">
         <div className="table-container">
           <table>
@@ -784,11 +497,9 @@ export default function Users() {
                 <th>Name</th>
                 <th>Email</th>
                 <th>Academic Code</th>
-                <th>Level</th>
+                <th>Roles</th>
+                <th>Department</th>
                 <th>Gender</th>
-                <th>GPA</th>
-                <th>Credits</th>
-                <th>Specialization</th>
               </tr>
             </thead>
             <tbody>
@@ -850,7 +561,7 @@ export default function Users() {
                         <strong>{user.displayName}</strong>
                       </div>
                     </td>
-                    <td>
+                    <td style={{ fontSize: '0.875rem' }}>
                       <div
                         style={{
                           display: 'flex',
@@ -862,28 +573,31 @@ export default function Users() {
                           size={14}
                           style={{ color: 'var(--text-light)' }}
                         />
-                        <span style={{ fontSize: '0.875rem' }}>
-                          {user.email}
-                        </span>
+                        {user.email}
                       </div>
                     </td>
                     <td>
-                      <code
-                        style={{
-                          fontSize: '0.875rem',
-                          background: 'var(--bg)',
-                          padding: '2px 6px',
-                          borderRadius: '4px',
-                          color: 'var(--primary)',
-                        }}
-                      >
+                      <code style={{ fontSize: '0.875rem' }}>
                         {user.academicCode || '—'}
                       </code>
                     </td>
                     <td>
-                      <span className={`badge ${getLevelColor(user.level)}`}>
-                        {formatLevel(user.level) || '—'}
-                      </span>
+                      {user.roles && user.roles.length > 0 ? (
+                        <span className={`badge ${getRoleColor(user.roles)}`}>
+                          {user.roles[0]}
+                        </span>
+                      ) : (
+                        <span className="badge badge-neutral">No Role</span>
+                      )}
+                    </td>
+                    <td>
+                      {user.department ? (
+                        <span className="badge badge-info">
+                          {user.department}
+                        </span>
+                      ) : (
+                        <span className="badge badge-neutral">—</span>
+                      )}
                     </td>
                     <td>
                       {user.gender ? (
@@ -896,21 +610,6 @@ export default function Users() {
                         <span className="badge badge-neutral">—</span>
                       )}
                     </td>
-                    <td>
-                      <span className="badge badge-neutral">
-                        {user.totalGPA?.toFixed(2) || '—'}
-                      </span>
-                    </td>
-                    <td>
-                      <span className="badge badge-neutral">
-                        {user.totalCredits || '—'}
-                      </span>
-                    </td>
-                    <td>
-                      <span className="badge badge-neutral">
-                        {user.specialization || '—'}
-                      </span>
-                    </td>
                   </tr>
                 ))
               )}
@@ -918,7 +617,7 @@ export default function Users() {
           </table>
         </div>
 
-        {/* Pagination Component */}
+        {/* Pagination */}
         {users.length > 0 && (
           <div style={{ marginTop: 16 }}>
             <Pagination

@@ -13,6 +13,12 @@ export const API_ENDPOINTS = {
     UPDATE_PROFILE_PICTURE: `${API_BASE}/User/update-profile-picture`,
     UPDATE_SPECIALIZATION: `${API_BASE}/User/update-student-specialization`,
   },
+  USERS: {
+    BASE: `${API_BASE}/User`,
+    PROFILE: academicCode => `${API_BASE}/User/${academicCode}/academic`,
+    UPDATE_PROFILE_PICTURE: `${API_BASE}/User/update-profile-picture`,
+    UPDATE_SPECIALIZATION: `${API_BASE}/User/update-student-specialization`,
+  },
   ROLES: {
     BASE: `${API_BASE}/Roles`,
     BY_ID: id => `${API_BASE}/Roles/${id}`,
@@ -93,6 +99,7 @@ export const ROUTES = {
     DEPARTMENTS: '/admin/departments',
     COURSES: '/admin/courses',
     STUDENTS: '/admin/students',
+    USERS: '/admin/users',
     STUDY_YEARS: '/admin/study-years',
     REGISTRATIONS: '/admin/registrations',
     FEES: '/admin/fees',

@@ -9,12 +9,19 @@ import {
   FiGitBranch,
   FiToggleRight,
   FiLock,
+  FiHash,
+  FiTag,
+  FiGrid,
+  FiActivity,
 } from 'react-icons/fi';
 import courseService from '../../services/courseService';
 import departmentService from '../../services/departmentService';
 import { useAuth } from '../../contexts/AuthContext';
 import { USER_ROLES } from '../../constants';
 import { toast } from 'react-toastify';
+import Pagination from '../../components/common/Pagination';
+import SortMenu from '../../components/common/SortMenu';
+import FilterSelect from '../../components/common/FilterSelect';
 
 export default function Courses() {
   const { hasRole, isAdmin } = useAuth();
@@ -41,6 +48,26 @@ export default function Courses() {
   const [showFilters, setShowFilters] = useState(false);
   const [filterApplied, setFilterApplied] = useState(false);
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
+  const [sortBy, setSortBy] = useState(null);
+  const [sortDirection, setSortDirection] = useState('Ascending');
+  const [pagination, setPagination] = useState(null);
+
+  const sortOptions = [
+    { value: 'Code', label: 'Course Code' },
+    { value: 'Name', label: 'Course Name' },
+    { value: 'Credits', label: 'Credits' },
+    { value: 'Status', label: 'Status' },
+  ];
+
+  // FilterSelect option arrays
+  const statusOptions = [
+    { value: 'Opened', label: 'Opened', dotColor: 'success' },
+    { value: 'Closed', label: 'Closed', dotColor: 'danger' },
+  ];
+
   const loadDepartments = async () => {
     try {
       const dRes = await departmentService.getAll();
@@ -53,20 +80,27 @@ export default function Courses() {
   const loadCourses = useCallback(async () => {
     setLoading(true);
     try {
-      // Build query params - only include non-empty values
-      const params = {};
-      if (filters.status) params.Status = filters.status;
-      if (filters.code) params.Code = filters.code;
-      if (filters.name) params.Name = filters.name;
+      const filterParams = {};
+      if (filters.status) filterParams.Status = filters.status;
+      if (filters.code) filterParams.Code = filters.code;
+      if (filters.name) filterParams.Name = filters.name;
       if (filters.departmentId)
-        params.DepartmentId = parseInt(filters.departmentId);
+        filterParams.DepartmentId = parseInt(filters.departmentId);
 
-      const response = await courseService.getAllWithFilters(params);
+      const response = await courseService.getAllWithPagination(
+        filterParams,
+        currentPage,
+        pageSize,
+        sortBy,
+        sortDirection
+      );
 
-      // Handle different response structures
       let coursesData = [];
+      let paginationData = null;
+
       if (response?.data) {
         coursesData = response.data;
+        paginationData = response.pagination;
       } else if (Array.isArray(response)) {
         coursesData = response;
       } else {
@@ -74,35 +108,38 @@ export default function Courses() {
       }
 
       setCourses(coursesData);
-
-      // Check if any filter is applied
+      if (paginationData) setPagination(paginationData);
       setFilterApplied(Object.values(filters).some(v => v !== ''));
     } catch (e) {
       toast.error(e?.errorMessage || 'Failed to load courses');
       setCourses([]);
     }
     setLoading(false);
-  }, [filters]);
+  }, [filters, currentPage, pageSize, sortBy, sortDirection]);
 
   useEffect(() => {
     loadDepartments();
   }, []);
-
   useEffect(() => {
     loadCourses();
   }, [loadCourses]);
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));
+    setCurrentPage(1);
   };
 
   const clearFilters = () => {
-    setFilters({
-      status: '',
-      code: '',
-      name: '',
-      departmentId: '',
-    });
+    setFilters({ status: '', code: '', name: '', departmentId: '' });
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = newPage => setCurrentPage(newPage);
+
+  const handleSortChange = (field, direction) => {
+    setSortBy(field);
+    setSortDirection(direction);
+    setCurrentPage(1);
   };
 
   const handleCreate = async e => {
@@ -126,16 +163,13 @@ export default function Courses() {
       toast.error('Only administrators can change course status');
       return;
     }
-
     try {
       setUpdatingStatus(course.id);
       const newStatus = course.status === 'Opened' ? 'Closed' : 'Opened';
-
       await courseService.updateStatus({
         courseId: course.id,
         status: newStatus,
       });
-
       toast.success(`Course status updated to ${newStatus}`);
       loadCourses();
     } catch (err) {
@@ -171,13 +205,11 @@ export default function Courses() {
     }
   };
 
-  // Get department name by ID
   const getDepartmentName = departmentId => {
     const dept = departments.find(d => d.id === departmentId);
     return dept?.name || 'N/A';
   };
 
-  // Get status badge class
   const getStatusBadgeClass = status => {
     switch (status) {
       case 'Opened':
@@ -189,11 +221,19 @@ export default function Courses() {
     }
   };
 
-  // Get course name by ID for modal title
   const getCourseName = courseId => {
     const course = courses.find(c => c.id === courseId);
     return course?.name || 'Course';
   };
+
+  // Department options for FilterSelect
+  const departmentOptions = departments.map(d => ({
+    value: String(d.id),
+    label: d.name,
+    dotColor: 'neutral',
+  }));
+
+  const activeFilterCount = Object.values(filters).filter(v => v !== '').length;
 
   if (loading && !courses.length)
     return (
@@ -240,9 +280,20 @@ export default function Courses() {
           >
             <FiFilter />
             Filters
-            {filterApplied && (
-              <span className="badge badge-primary" style={{ marginLeft: 8 }}>
-                •
+            {activeFilterCount > 0 && (
+              <span
+                style={{
+                  marginLeft: 6,
+                  background: '#6366f1',
+                  color: '#fff',
+                  borderRadius: '999px',
+                  fontSize: 11,
+                  fontWeight: 700,
+                  padding: '1px 7px',
+                  lineHeight: '18px',
+                }}
+              >
+                {activeFilterCount}
               </span>
             )}
           </button>
@@ -265,157 +316,293 @@ export default function Courses() {
         </div>
       </div>
 
-      {/* Filters Section */}
+      {/* ── Filters Panel ─────────────────────────────────────── */}
       {showFilters && (
         <div
           className="card"
-          style={{ marginBottom: 24, animation: 'slideDown 0.3s ease' }}
+          style={{ marginBottom: 24, animation: 'slideDown 0.25s ease' }}
         >
           <div
             style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              marginBottom: 20,
+              marginBottom: 18,
             }}
           >
-            <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>
+            <h3 style={{ margin: 0, fontSize: '0.9375rem', fontWeight: 600 }}>
               Filter Courses
             </h3>
-            <button
-              className="btn btn-ghost btn-sm"
-              onClick={clearFilters}
-              style={{ display: 'flex', alignItems: 'center', gap: 4 }}
-            >
-              <FiX size={14} /> Clear All
-            </button>
+            {filterApplied && (
+              <button
+                className="btn btn-ghost btn-sm"
+                onClick={clearFilters}
+                style={{ display: 'flex', alignItems: 'center', gap: 4 }}
+              >
+                <FiX size={13} /> Clear All
+              </button>
+            )}
           </div>
 
+          {/* FilterSelect row — all dropdowns inline */}
           <div
             style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-              gap: 16,
+              display: 'flex',
+              gap: 12,
+              flexWrap: 'wrap',
+              alignItems: 'flex-end',
             }}
           >
-            <div className="form-group">
-              <label
-                style={{
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  marginBottom: 6,
-                }}
-              >
-                Status
-              </label>
-              <select
-                className="form-control"
-                value={filters.status}
-                onChange={e => handleFilterChange('status', e.target.value)}
-              >
-                <option value="">All Status</option>
-                <option value="Opened">Opened</option>
-                <option value="Closed">Closed</option>
-              </select>
-            </div>
+            {/* Status */}
+            <FilterSelect
+              label="Status"
+              value={filters.status}
+              onChange={val => handleFilterChange('status', val)}
+              options={statusOptions}
+              placeholder="All Statuses"
+              icon={<FiActivity size={13} />}
+            />
 
-            <div className="form-group">
-              <label
+            {/* Department */}
+            <FilterSelect
+              label="Department"
+              value={filters.departmentId}
+              onChange={val => handleFilterChange('departmentId', val)}
+              options={departmentOptions}
+              placeholder="All Departments"
+              icon={<FiGrid size={13} />}
+            />
+
+            {/* Code — plain text input kept but styled to match */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <span
                 style={{
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  marginBottom: 6,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.07em',
+                  color: '#94a3b8',
                 }}
               >
                 Code
-              </label>
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Filter by code..."
-                value={filters.code}
-                onChange={e => handleFilterChange('code', e.target.value)}
-              />
+              </span>
+              <div style={{ position: 'relative' }}>
+                <FiHash
+                  size={13}
+                  style={{
+                    position: 'absolute',
+                    left: 10,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    color: '#94a3b8',
+                    pointerEvents: 'none',
+                  }}
+                />
+                <input
+                  type="text"
+                  value={filters.code}
+                  onChange={e => handleFilterChange('code', e.target.value)}
+                  placeholder="e.g. CS101"
+                  style={{
+                    paddingLeft: 28,
+                    paddingRight: filters.code ? 28 : 12,
+                    paddingTop: 8,
+                    paddingBottom: 8,
+                    borderRadius: 9,
+                    border: `1.5px solid ${filters.code ? '#6366f1' : '#e2e8f0'}`,
+                    background: filters.code ? '#eef2ff' : '#fff',
+                    color: filters.code ? '#4338ca' : '#475569',
+                    fontSize: 13.5,
+                    fontFamily: 'inherit',
+                    outline: 'none',
+                    width: 148,
+                    boxShadow: filters.code
+                      ? '0 0 0 3px rgba(99,102,241,0.08)'
+                      : '0 1px 2px rgba(0,0,0,0.04)',
+                    transition: 'all 0.15s',
+                  }}
+                />
+                {filters.code && (
+                  <button
+                    onClick={() => handleFilterChange('code', '')}
+                    style={{
+                      position: 'absolute',
+                      right: 8,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'rgba(99,102,241,0.15)',
+                      border: 'none',
+                      borderRadius: '50%',
+                      width: 16,
+                      height: 16,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      color: '#6366f1',
+                      padding: 0,
+                    }}
+                  >
+                    <FiX size={9} />
+                  </button>
+                )}
+              </div>
             </div>
 
-            <div className="form-group">
-              <label
+            {/* Name */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <span
                 style={{
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  marginBottom: 6,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.07em',
+                  color: '#94a3b8',
                 }}
               >
                 Name
-              </label>
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Filter by name..."
-                value={filters.name}
-                onChange={e => handleFilterChange('name', e.target.value)}
-              />
-            </div>
-
-            <div className="form-group">
-              <label
-                style={{
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  marginBottom: 6,
-                }}
-              >
-                Department
-              </label>
-              <select
-                className="form-control"
-                value={filters.departmentId}
-                onChange={e =>
-                  handleFilterChange('departmentId', e.target.value)
-                }
-              >
-                <option value="">All Departments</option>
-                {departments.map(d => (
-                  <option key={d.id} value={d.id}>
-                    {d.name}
-                  </option>
-                ))}
-              </select>
+              </span>
+              <div style={{ position: 'relative' }}>
+                <FiTag
+                  size={13}
+                  style={{
+                    position: 'absolute',
+                    left: 10,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    color: '#94a3b8',
+                    pointerEvents: 'none',
+                  }}
+                />
+                <input
+                  type="text"
+                  value={filters.name}
+                  onChange={e => handleFilterChange('name', e.target.value)}
+                  placeholder="Search name..."
+                  style={{
+                    paddingLeft: 28,
+                    paddingRight: filters.name ? 28 : 12,
+                    paddingTop: 8,
+                    paddingBottom: 8,
+                    borderRadius: 9,
+                    border: `1.5px solid ${filters.name ? '#6366f1' : '#e2e8f0'}`,
+                    background: filters.name ? '#eef2ff' : '#fff',
+                    color: filters.name ? '#4338ca' : '#475569',
+                    fontSize: 13.5,
+                    fontFamily: 'inherit',
+                    outline: 'none',
+                    width: 180,
+                    boxShadow: filters.name
+                      ? '0 0 0 3px rgba(99,102,241,0.08)'
+                      : '0 1px 2px rgba(0,0,0,0.04)',
+                    transition: 'all 0.15s',
+                  }}
+                />
+                {filters.name && (
+                  <button
+                    onClick={() => handleFilterChange('name', '')}
+                    style={{
+                      position: 'absolute',
+                      right: 8,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'rgba(99,102,241,0.15)',
+                      border: 'none',
+                      borderRadius: '50%',
+                      width: 16,
+                      height: 16,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      color: '#6366f1',
+                      padding: 0,
+                    }}
+                  >
+                    <FiX size={9} />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Active Filters */}
+          {/* Active filter chips */}
           {filterApplied && (
             <div
               style={{
                 marginTop: 16,
-                paddingTop: 16,
-                borderTop: '1px solid var(--border)',
+                paddingTop: 14,
+                borderTop: '1px solid #f1f5f9',
                 display: 'flex',
-                gap: 8,
+                gap: 6,
                 flexWrap: 'wrap',
+                alignItems: 'center',
               }}
             >
               <span
-                style={{ fontSize: '0.875rem', color: 'var(--text-light)' }}
+                style={{
+                  fontSize: '0.8125rem',
+                  color: '#94a3b8',
+                  fontWeight: 500,
+                }}
               >
-                Active filters:
+                Active:
               </span>
               {filters.status && (
-                <span className="badge badge-info">
-                  Status: {filters.status}
+                <span
+                  className="badge badge-info"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => handleFilterChange('status', '')}
+                >
+                  Status: {filters.status} <FiX size={10} />
                 </span>
               )}
               {filters.code && (
-                <span className="badge badge-info">Code: {filters.code}</span>
+                <span
+                  className="badge badge-info"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => handleFilterChange('code', '')}
+                >
+                  Code: {filters.code} <FiX size={10} />
+                </span>
               )}
               {filters.name && (
-                <span className="badge badge-info">Name: {filters.name}</span>
+                <span
+                  className="badge badge-info"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => handleFilterChange('name', '')}
+                >
+                  Name: {filters.name} <FiX size={10} />
+                </span>
               )}
               {filters.departmentId && (
-                <span className="badge badge-info">
-                  Department:{' '}
-                  {getDepartmentName(parseInt(filters.departmentId))}
+                <span
+                  className="badge badge-info"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => handleFilterChange('departmentId', '')}
+                >
+                  Dept: {getDepartmentName(parseInt(filters.departmentId))}{' '}
+                  <FiX size={10} />
                 </span>
               )}
             </div>
@@ -423,23 +610,38 @@ export default function Courses() {
         </div>
       )}
 
-      {/* Results Summary */}
+      {/* ── Results Summary ────────────────────────────────────── */}
       <div
         style={{
           marginBottom: 16,
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
+          gap: 12,
+          flexWrap: 'wrap',
         }}
       >
         <span className="badge badge-info" style={{ fontSize: '0.875rem' }}>
-          {courses.length} course{courses.length !== 1 ? 's' : ''} found
+          {pagination?.totalCount || courses.length} course
+          {(pagination?.totalCount || courses.length) !== 1 ? 's' : ''} found
         </span>
-        {loading && (
-          <span style={{ color: 'var(--text-light)' }}>Updating...</span>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <SortMenu
+            sortBy={sortBy}
+            sortDirection={sortDirection}
+            onSortChange={handleSortChange}
+            sortOptions={sortOptions}
+            isLoading={loading}
+          />
+          {loading && (
+            <span style={{ fontSize: 13, color: 'var(--text-light)' }}>
+              Updating…
+            </span>
+          )}
+        </div>
       </div>
 
+      {/* ── Table ─────────────────────────────────────────────── */}
       <div className="card">
         <div className="table-container">
           <table>
@@ -539,7 +741,6 @@ export default function Courses() {
                           View Only
                         </span>
                       )}
-
                       <button
                         className="btn btn-ghost btn-sm"
                         onClick={() => viewPrereqs(c.id)}
@@ -561,9 +762,22 @@ export default function Courses() {
             </tbody>
           </table>
         </div>
+
+        {courses.length > 0 && (
+          <div style={{ marginTop: 16 }}>
+            <Pagination
+              currentPage={pagination?.currentPage || currentPage}
+              totalPages={pagination?.totalPages || 1}
+              pageSize={pageSize}
+              totalCount={pagination?.totalCount || courses.length}
+              onPageChange={handlePageChange}
+              isLoading={loading}
+            />
+          </div>
+        )}
       </div>
 
-      {/* Create Course Modal - Only for Admin */}
+      {/* ── Create Modal ───────────────────────────────────────── */}
       {isAdmin && modal === 'create' && (
         <div className="modal-overlay" onClick={() => setModal(null)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
@@ -642,7 +856,7 @@ export default function Courses() {
         </div>
       )}
 
-      {/* Prerequisites Modal */}
+      {/* ── Prerequisites Modal ────────────────────────────────── */}
       {detail?.type === 'prereqs' && (
         <div className="modal-overlay" onClick={() => setDetail(null)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
@@ -699,7 +913,7 @@ export default function Courses() {
         </div>
       )}
 
-      {/* Dependencies Modal */}
+      {/* ── Dependencies Modal ─────────────────────────────────── */}
       {detail?.type === 'dependencies' && (
         <div className="modal-overlay" onClick={() => setDetail(null)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
@@ -789,21 +1003,17 @@ export default function Courses() {
           background-color: #fee2e2;
           color: #991b1b;
         }
-
         .btn-warning {
           background-color: #f59e0b;
           color: white;
         }
-
         .btn-warning:hover:not(:disabled) {
           background-color: #d97706;
         }
-
         .btn-success {
           background-color: #10b981;
           color: white;
         }
-
         .btn-success:hover:not(:disabled) {
           background-color: #059669;
         }

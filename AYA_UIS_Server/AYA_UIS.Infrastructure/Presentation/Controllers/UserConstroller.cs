@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
 using AYA_UIS.Application.Dtos.UserDtos;
 using AYA_UIS.Domain.Queries;
+using Shared.Respones;
 
 namespace AYA_UIS.Infrastructure.Presentation.Controllers
 {
@@ -67,6 +68,18 @@ namespace AYA_UIS.Infrastructure.Presentation.Controllers
         }
 
         [Authorize(Roles = "Admin")]
+        [HttpGet("paginated")]
+        public async Task<IActionResult> GetAllPaginated([FromQuery] UserQueries queries)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var (users, totalCount) = await _serviceManager.UserService.GetAllUsersWithPaginationAsync(userId, queries);
+            return Ok(PagedResponse<UserDto>.SuccessResponse(users, queries.PageNumber, queries.PageSize, totalCount));
+        }
+
+        [Authorize(Roles = "Admin")]
         [HttpGet("students")]
         public async Task<IActionResult> GetAllStudents([FromQuery]StudentQueries queries)
         {
@@ -79,6 +92,18 @@ namespace AYA_UIS.Infrastructure.Presentation.Controllers
         }
 
         [Authorize(Roles = "Admin")]
+        [HttpGet("students/paginated")]
+        public async Task<IActionResult> GetAllStudentsPaginated([FromQuery] StudentQueries queries)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var (users, totalCount) = await _serviceManager.UserService.GetAllStudentUsersWithPaginationAsync(userId, queries);
+            return Ok(PagedResponse<UserDto>.SuccessResponse(users, queries.PageNumber, queries.PageSize, totalCount));
+        }
+
+        [Authorize(Roles = "Admin")]
         [HttpGet("ungraduate-students")]
         public async Task<IActionResult> GetAllUnGraduateStudents([FromQuery]StudentQueries queries)
         {
@@ -88,6 +113,18 @@ namespace AYA_UIS.Infrastructure.Presentation.Controllers
             
             var users = await _serviceManager.UserService.GetUnGraduateStudentUsers(userId, queries);
             return Ok(users);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("ungraduate-students/paginated")]
+        public async Task<IActionResult> GetAllUnGraduateStudentsPaginated([FromQuery] StudentQueries queries)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var (users, totalCount) = await _serviceManager.UserService.GetUnGraduateStudentUsersWithPaginationAsync(userId, queries);
+            return Ok(PagedResponse<UserDto>.SuccessResponse(users, queries.PageNumber, queries.PageSize, totalCount));
         }
 
     }

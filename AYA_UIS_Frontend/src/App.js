@@ -16,6 +16,7 @@ import Students from './pages/admin/Students';
 import Roles from './pages/admin/Roles';
 import PromoteStudents from './pages/admin/PromoteStudents';
 import StudyYearFees from './pages/admin/StudyYearFees';
+import Users from './pages/admin/Users';
 import MyCourses from './pages/student/MyCourses';
 import Timeline from './pages/student/Timeline';
 import Profile from './pages/student/Profile';
@@ -105,6 +106,14 @@ function App() {
               element={
                 <ProtectedRoute roles={['Admin']}>
                   <Roles />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="admin/users"
+              element={
+                <ProtectedRoute roles={['Admin']}>
+                  <Users />
                 </ProtectedRoute>
               }
             />

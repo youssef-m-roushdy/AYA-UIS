@@ -1,35 +1,45 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import SortMenu from '../../components/common/SortMenu';
+import Pagination from '../../components/common/Pagination';
+import FilterSelect from '../../components/common/FilterSelect';
 import {
   FiArrowUp,
   FiUsers,
   FiFilter,
   FiX,
-  FiChevronLeft,
-  FiChevronRight,
   FiLoader,
   FiEye,
+  FiUser,
+  FiGrid,
 } from 'react-icons/fi';
-import { userService } from '../../services/otherServices';
+import userService from '../../services/userService';
 import { userStudyYearService } from '../../services/otherServices';
 import departmentService from '../../services/departmentService';
 import { LEVEL_LABELS, GENDER_OPTIONS } from '../../constants';
 import { toast } from 'react-toastify';
+import {
+  buildQueryString,
+  createFilterPageParams,
+} from '../../utils/paginationUtils';
 
 export default function PromoteStudents() {
   const [students, setStudents] = useState([]);
-  const [filteredStudents, setFilteredStudents] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [promotingId, setPromotingId] = useState(null);
   const [promoteAllLoading, setPromoteAllLoading] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
 
-  // Pagination
+  // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const [studentsPerPage] = useState(10);
+  const pageSize = 10; // Fixed page size
+  const [sortBy, setSortBy] = useState(null);
+  const [sortDirection, setSortDirection] = useState('Ascending');
+  const [pagination, setPagination] = useState(null);
 
   // Filter states
   const [showFilters, setShowFilters] = useState(false);
+  const [filterApplied, setFilterApplied] = useState(false);
   const [filters, setFilters] = useState({
     academicCode: '',
     gender: '',
@@ -42,14 +52,32 @@ export default function PromoteStudents() {
     maxCredits: '',
   });
 
+  const genderOptions = [
+    { value: 'Male', label: 'Male' },
+    { value: 'Female', label: 'Female' },
+  ];
+
+  // FilterSelect option arrays
+  const genderFilterOptions = [
+    { value: 'Male', label: 'Male', dotColor: 'info' },
+    { value: 'Female', label: 'Female', dotColor: 'pink' },
+  ];
+
+  const levelFilterOptions = Object.entries(LEVEL_LABELS)
+    .filter(([value]) => value !== 'Graduate')
+    .map(([value, label]) => ({
+      value,
+      label,
+      dotColor: 'neutral',
+    }));
+
   useEffect(() => {
     loadDepartments();
-    loadUngraduatedStudents();
   }, []);
 
   useEffect(() => {
-    applyFilters();
-  }, [students, filters]);
+    loadUngraduatedStudents();
+  }, [currentPage, pageSize, sortBy, sortDirection, filters]);
 
   const loadDepartments = async () => {
     try {
@@ -60,107 +88,72 @@ export default function PromoteStudents() {
     }
   };
 
-  const loadUngraduatedStudents = async () => {
+  const loadUngraduatedStudents = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await userService.getUngraduatedStudents();
+      // Build filter params
+      const filterParams = {
+        Level_NotEqual: 'Graduate', // Exclude graduates
+      };
 
-      // Handle different response structures
+      if (filters.academicCode)
+        filterParams.Academic_Code = filters.academicCode;
+      if (filters.gender) filterParams.Gender = filters.gender;
+      if (filters.level) filterParams.Level = filters.level;
+      if (filters.departmentId)
+        filterParams.DepartmentId = parseInt(filters.departmentId);
+      if (filters.specialization)
+        filterParams.Specialization = filters.specialization;
+      if (filters.minGPA) filterParams.MinGPA = parseFloat(filters.minGPA);
+      if (filters.maxGPA) filterParams.MaxGPA = parseFloat(filters.maxGPA);
+      if (filters.minCredits)
+        filterParams.MinCredits = parseInt(filters.minCredits);
+      if (filters.maxCredits)
+        filterParams.MaxCredits = parseInt(filters.maxCredits);
+
+      const response = await userService.getAllUnGraduateStudentsPaginated(
+        filterParams,
+        currentPage,
+        pageSize,
+        sortBy,
+        sortDirection
+      );
+
       let studentsData = [];
+      let paginationData = null;
+
       if (response?.data) {
         studentsData = response.data;
+        paginationData = response.pagination;
       } else if (Array.isArray(response)) {
         studentsData = response;
       } else {
         studentsData = response || [];
       }
 
-      // Filter out any graduate students manually if API doesn't exclude them
-      studentsData = studentsData.filter(s => s.level !== 'Graduate');
-
       setStudents(studentsData);
-      setFilteredStudents(studentsData);
+      if (paginationData) {
+        setPagination(paginationData);
+      }
 
-      if (studentsData.length === 0) {
+      setFilterApplied(Object.values(filters).some(v => v !== ''));
+
+      if (studentsData.length === 0 && currentPage === 1) {
         toast.info('No eligible students found for promotion');
       }
     } catch (error) {
       console.error('Failed to load students:', error);
       toast.error(error?.errorMessage || 'Failed to load students');
       setStudents([]);
-      setFilteredStudents([]);
+      setPagination(null);
     } finally {
       setLoading(false);
     }
-  };
-
-  const applyFilters = () => {
-    let filtered = [...students];
-
-    // Apply text filters
-    if (filters.academicCode) {
-      filtered = filtered.filter(s =>
-        s.academicCode
-          ?.toLowerCase()
-          .includes(filters.academicCode.toLowerCase())
-      );
-    }
-
-    if (filters.gender) {
-      filtered = filtered.filter(s => s.gender === filters.gender);
-    }
-
-    if (filters.level) {
-      filtered = filtered.filter(s => s.level === filters.level);
-    }
-
-    if (filters.departmentId) {
-      filtered = filtered.filter(s => {
-        // Handle both department object and departmentId
-        const deptId = s.departmentId || s.department?.id;
-        return deptId === parseInt(filters.departmentId);
-      });
-    }
-
-    if (filters.specialization) {
-      filtered = filtered.filter(s =>
-        s.specialization
-          ?.toLowerCase()
-          .includes(filters.specialization.toLowerCase())
-      );
-    }
-
-    // Apply numeric filters (if your API returns these fields)
-    if (filters.minGPA) {
-      filtered = filtered.filter(
-        s => (s.totalGPA || 0) >= parseFloat(filters.minGPA)
-      );
-    }
-
-    if (filters.maxGPA) {
-      filtered = filtered.filter(
-        s => (s.totalGPA || 0) <= parseFloat(filters.maxGPA)
-      );
-    }
-
-    if (filters.minCredits) {
-      filtered = filtered.filter(
-        s => (s.totalCredits || 0) >= parseInt(filters.minCredits)
-      );
-    }
-
-    if (filters.maxCredits) {
-      filtered = filtered.filter(
-        s => (s.totalCredits || 0) <= parseInt(filters.maxCredits)
-      );
-    }
-
-    setFilteredStudents(filtered);
-    setCurrentPage(1); // Reset to first page when filters change
-  };
+  }, [currentPage, pageSize, sortBy, sortDirection, filters]);
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));
+    setCurrentPage(1);
   };
 
   const clearFilters = () => {
@@ -175,6 +168,17 @@ export default function PromoteStudents() {
       minCredits: '',
       maxCredits: '',
     });
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = newPage => {
+    setCurrentPage(newPage);
+  };
+
+  const handleSortChange = (field, direction) => {
+    setSortBy(field);
+    setSortDirection(direction);
+    setCurrentPage(1);
   };
 
   const handlePromoteStudent = async student => {
@@ -223,25 +227,16 @@ export default function PromoteStudents() {
           'All eligible students promoted successfully!'
       );
       // Refresh the list
-      loadUngraduatedStudents();
+      setCurrentPage(1);
+      await loadUngraduatedStudents();
     } catch (err) {
       toast.error(
         err?.errorMessage || err?.message || 'Failed to promote students'
       );
+    } finally {
+      setPromoteAllLoading(false);
     }
-    setPromoteAllLoading(false);
   };
-
-  // Pagination logic
-  const indexOfLastStudent = currentPage * studentsPerPage;
-  const indexOfFirstStudent = indexOfLastStudent - studentsPerPage;
-  const currentStudents = filteredStudents.slice(
-    indexOfFirstStudent,
-    indexOfLastStudent
-  );
-  const totalPages = Math.ceil(filteredStudents.length / studentsPerPage);
-
-  const paginate = pageNumber => setCurrentPage(pageNumber);
 
   // Check if any filter is applied
   const hasActiveFilters = Object.values(filters).some(value => value !== '');
@@ -309,7 +304,10 @@ export default function PromoteStudents() {
           <button
             className="btn btn-primary"
             onClick={handlePromoteAll}
-            disabled={promoteAllLoading || filteredStudents.length === 0}
+            disabled={
+              promoteAllLoading ||
+              (pagination?.totalCount || students.length) === 0
+            }
           >
             {promoteAllLoading ? (
               <>
@@ -317,7 +315,8 @@ export default function PromoteStudents() {
               </>
             ) : (
               <>
-                <FiArrowUp /> Promote All ({filteredStudents.length})
+                <FiArrowUp /> Promote All (
+                {pagination?.totalCount || students.length})
               </>
             )}
           </button>
@@ -335,157 +334,326 @@ export default function PromoteStudents() {
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              marginBottom: 20,
+              marginBottom: 18,
             }}
           >
-            <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>
+            <h3 style={{ margin: 0, fontSize: '0.9375rem', fontWeight: 600 }}>
               Filter Students
             </h3>
-            <button
-              className="btn btn-ghost btn-sm"
-              onClick={clearFilters}
-              style={{ display: 'flex', alignItems: 'center', gap: 4 }}
-            >
-              <FiX size={14} /> Clear All
-            </button>
+            {filterApplied && (
+              <button
+                className="btn btn-ghost btn-sm"
+                onClick={clearFilters}
+                style={{ display: 'flex', alignItems: 'center', gap: 4 }}
+              >
+                <FiX size={13} /> Clear All
+              </button>
+            )}
           </div>
 
+          {/* FilterSelect row — all dropdowns inline */}
           <div
             style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-              gap: 16,
+              display: 'flex',
+              gap: 12,
+              flexWrap: 'wrap',
+              alignItems: 'flex-end',
             }}
           >
-            <div className="form-group">
-              <label>Academic Code</label>
+            {/* Gender */}
+            <FilterSelect
+              label="Gender"
+              value={filters.gender}
+              onChange={val => handleFilterChange('gender', val)}
+              options={genderFilterOptions}
+              placeholder="All Genders"
+              icon={<FiUser size={13} />}
+            />
+
+            {/* Level */}
+            <FilterSelect
+              label="Level"
+              value={filters.level}
+              onChange={val => handleFilterChange('level', val)}
+              options={levelFilterOptions}
+              placeholder="All Levels"
+              icon={<FiUser size={13} />}
+            />
+
+            {/* Department */}
+            <FilterSelect
+              label="Department"
+              value={filters.departmentId}
+              onChange={val => handleFilterChange('departmentId', val)}
+              options={departments.map(d => ({
+                value: String(d.id),
+                label: d.name,
+                dotColor: 'neutral',
+              }))}
+              placeholder="All Departments"
+              icon={<FiGrid size={13} />}
+            />
+
+            {/* Academic Code — plain text input */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.07em',
+                  color: '#94a3b8',
+                }}
+              >
+                Academic Code
+              </span>
               <input
                 type="text"
-                className="form-control"
                 placeholder="Enter code..."
                 value={filters.academicCode}
                 onChange={e =>
                   handleFilterChange('academicCode', e.target.value)
                 }
+                style={{
+                  padding: '0 12px',
+                  height: '38px',
+                  border: '1.5px solid #e2e8f0',
+                  borderRadius: '10px',
+                  fontSize: '13.5px',
+                  fontFamily: "'DM Sans', sans-serif",
+                  outline: 'none',
+                  transition: 'border-color 0.15s, box-shadow 0.15s',
+                }}
+                onFocus={e => {
+                  e.target.style.borderColor = '#6366f1';
+                  e.target.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.12)';
+                }}
+                onBlur={e => {
+                  e.target.style.borderColor = '#e2e8f0';
+                  e.target.style.boxShadow = 'none';
+                }}
               />
             </div>
 
-            <div className="form-group">
-              <label>Gender</label>
-              <select
-                className="form-control"
-                value={filters.gender}
-                onChange={e => handleFilterChange('gender', e.target.value)}
+            {/* Specialization — plain text input */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.07em',
+                  color: '#94a3b8',
+                }}
               >
-                <option value="">All Genders</option>
-                {GENDER_OPTIONS?.map(g => (
-                  <option key={g.value} value={g.value}>
-                    {g.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label>Level</label>
-              <select
-                className="form-control"
-                value={filters.level}
-                onChange={e => handleFilterChange('level', e.target.value)}
-              >
-                <option value="">All Levels</option>
-                {Object.entries(LEVEL_LABELS)
-                  .filter(([value]) => value !== 'Graduate')
-                  .map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label>Department</label>
-              <select
-                className="form-control"
-                value={filters.departmentId}
-                onChange={e =>
-                  handleFilterChange('departmentId', e.target.value)
-                }
-              >
-                <option value="">All Departments</option>
-                {departments.map(d => (
-                  <option key={d.id} value={d.id}>
-                    {d.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label>Specialization</label>
+                Specialization
+              </span>
               <input
                 type="text"
-                className="form-control"
                 placeholder="Enter specialization..."
                 value={filters.specialization}
                 onChange={e =>
                   handleFilterChange('specialization', e.target.value)
                 }
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Min GPA</label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                max="4"
-                className="form-control"
-                placeholder="0.0"
-                value={filters.minGPA}
-                onChange={e => handleFilterChange('minGPA', e.target.value)}
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Max GPA</label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                max="4"
-                className="form-control"
-                placeholder="4.0"
-                value={filters.maxGPA}
-                onChange={e => handleFilterChange('maxGPA', e.target.value)}
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Min Credits</label>
-              <input
-                type="number"
-                min="0"
-                className="form-control"
-                placeholder="0"
-                value={filters.minCredits}
-                onChange={e => handleFilterChange('minCredits', e.target.value)}
+                style={{
+                  padding: '0 12px',
+                  height: '38px',
+                  border: '1.5px solid #e2e8f0',
+                  borderRadius: '10px',
+                  fontSize: '13.5px',
+                  fontFamily: "'DM Sans', sans-serif",
+                  outline: 'none',
+                  transition: 'border-color 0.15s, box-shadow 0.15s',
+                }}
+                onFocus={e => {
+                  e.target.style.borderColor = '#6366f1';
+                  e.target.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.12)';
+                }}
+                onBlur={e => {
+                  e.target.style.borderColor = '#e2e8f0';
+                  e.target.style.boxShadow = 'none';
+                }}
               />
             </div>
           </div>
 
+          {/* Additional numeric filters below */}
           <div
             style={{
-              marginTop: 20,
               display: 'flex',
-              justifyContent: 'flex-end',
+              gap: 12,
+              flexWrap: 'wrap',
+              alignItems: 'flex-end',
+              marginTop: 16,
             }}
           >
-            <button className="btn btn-primary" onClick={applyFilters}>
-              Apply Filters
-            </button>
+            {/* Min GPA */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.07em',
+                  color: '#94a3b8',
+                }}
+              >
+                Min GPA
+              </span>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                max="4"
+                placeholder="0.0"
+                value={filters.minGPA}
+                onChange={e => handleFilterChange('minGPA', e.target.value)}
+                style={{
+                  padding: '0 12px',
+                  height: '38px',
+                  border: '1.5px solid #e2e8f0',
+                  borderRadius: '10px',
+                  fontSize: '13.5px',
+                  fontFamily: "'DM Sans', sans-serif",
+                  outline: 'none',
+                  transition: 'border-color 0.15s, box-shadow 0.15s',
+                  minWidth: '120px',
+                }}
+                onFocus={e => {
+                  e.target.style.borderColor = '#6366f1';
+                  e.target.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.12)';
+                }}
+                onBlur={e => {
+                  e.target.style.borderColor = '#e2e8f0';
+                  e.target.style.boxShadow = 'none';
+                }}
+              />
+            </div>
+
+            {/* Max GPA */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.07em',
+                  color: '#94a3b8',
+                }}
+              >
+                Max GPA
+              </span>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                max="4"
+                placeholder="4.0"
+                value={filters.maxGPA}
+                onChange={e => handleFilterChange('maxGPA', e.target.value)}
+                style={{
+                  padding: '0 12px',
+                  height: '38px',
+                  border: '1.5px solid #e2e8f0',
+                  borderRadius: '10px',
+                  fontSize: '13.5px',
+                  fontFamily: "'DM Sans', sans-serif",
+                  outline: 'none',
+                  transition: 'border-color 0.15s, box-shadow 0.15s',
+                  minWidth: '120px',
+                }}
+                onFocus={e => {
+                  e.target.style.borderColor = '#6366f1';
+                  e.target.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.12)';
+                }}
+                onBlur={e => {
+                  e.target.style.borderColor = '#e2e8f0';
+                  e.target.style.boxShadow = 'none';
+                }}
+              />
+            </div>
+
+            {/* Min Credits */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.07em',
+                  color: '#94a3b8',
+                }}
+              >
+                Min Credits
+              </span>
+              <input
+                type="number"
+                min="0"
+                placeholder="0"
+                value={filters.minCredits}
+                onChange={e => handleFilterChange('minCredits', e.target.value)}
+                style={{
+                  padding: '0 12px',
+                  height: '38px',
+                  border: '1.5px solid #e2e8f0',
+                  borderRadius: '10px',
+                  fontSize: '13.5px',
+                  fontFamily: "'DM Sans', sans-serif",
+                  outline: 'none',
+                  transition: 'border-color 0.15s, box-shadow 0.15s',
+                  minWidth: '120px',
+                }}
+                onFocus={e => {
+                  e.target.style.borderColor = '#6366f1';
+                  e.target.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.12)';
+                }}
+                onBlur={e => {
+                  e.target.style.borderColor = '#e2e8f0';
+                  e.target.style.boxShadow = 'none';
+                }}
+              />
+            </div>
+
+            {/* Max Credits */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.07em',
+                  color: '#94a3b8',
+                }}
+              >
+                Max Credits
+              </span>
+              <input
+                type="number"
+                min="0"
+                placeholder="0"
+                value={filters.maxCredits}
+                onChange={e => handleFilterChange('maxCredits', e.target.value)}
+                style={{
+                  padding: '0 12px',
+                  height: '38px',
+                  border: '1.5px solid #e2e8f0',
+                  borderRadius: '10px',
+                  fontSize: '13.5px',
+                  fontFamily: "'DM Sans', sans-serif",
+                  outline: 'none',
+                  transition: 'border-color 0.15s, box-shadow 0.15s',
+                  minWidth: '120px',
+                }}
+                onFocus={e => {
+                  e.target.style.borderColor = '#6366f1';
+                  e.target.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.12)';
+                }}
+                onBlur={e => {
+                  e.target.style.borderColor = '#e2e8f0';
+                  e.target.style.boxShadow = 'none';
+                }}
+              />
+            </div>
           </div>
         </div>
       )}
@@ -500,19 +668,34 @@ export default function PromoteStudents() {
         }}
       >
         <span className="badge badge-info" style={{ fontSize: '0.875rem' }}>
-          {filteredStudents.length} eligible student
-          {filteredStudents.length !== 1 ? 's' : ''} found
+          {pagination?.totalCount || students.length} eligible student
+          {(pagination?.totalCount || students.length) !== 1 ? 's' : ''} found
         </span>
-        {loading && (
-          <span style={{ color: 'var(--text-light)' }}>
-            <FiLoader className="spin" /> Loading...
-          </span>
-        )}
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <SortMenu
+            sortBy={sortBy}
+            sortDirection={sortDirection}
+            onSortChange={handleSortChange}
+            sortOptions={[
+              { value: 'DisplayName', label: 'Name' },
+              { value: 'AcademicCode', label: 'Academic Code' },
+              { value: 'Level', label: 'Level' },
+              { value: 'Gender', label: 'Gender' },
+            ]}
+            isLoading={loading}
+          />
+          {loading && (
+            <span style={{ color: 'var(--text-light)' }}>
+              <FiLoader className="spin" /> Loading...
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Students Table */}
       <div className="card">
-        {filteredStudents.length === 0 && !loading ? (
+        {students.length === 0 && !loading ? (
           <div
             className="empty-state"
             style={{ padding: '40px 20px', textAlign: 'center' }}
@@ -541,8 +724,9 @@ export default function PromoteStudents() {
                 <thead>
                   <tr>
                     <th>Profile</th>
-                    <th>Academic Code</th>
+
                     <th>Name</th>
+                    <th>Academic Code</th>
                     <th>Username</th>
                     <th>Email</th>
                     <th>Phone</th>
@@ -554,7 +738,7 @@ export default function PromoteStudents() {
                   </tr>
                 </thead>
                 <tbody>
-                  {currentStudents.map(student => (
+                  {students.map(student => (
                     <tr key={student.id}>
                       <td>
                         <div className="student-avatar">
@@ -589,10 +773,15 @@ export default function PromoteStudents() {
                           )}
                         </div>
                       </td>
+
+                      <td>
+                        <span style={{ whiteSpace: 'nowrap' }}>
+                          <strong>{student.displayName}</strong>
+                        </span>
+                      </td>
                       <td>
                         <strong>{student.academicCode}</strong>
                       </td>
-                      <td>{student.displayName}</td>
                       <td>{student.userName}</td>
                       <td>{student.email}</td>
                       <td>{student.phoneNumber}</td>
@@ -604,6 +793,7 @@ export default function PromoteStudents() {
                       <td>
                         <span
                           className={`badge ${getLevelBadgeColor(student.level)}`}
+                          style={{ whiteSpace: 'nowrap' }}
                         >
                           {getLevelDisplay(student.level)}
                         </span>
@@ -669,37 +859,17 @@ export default function PromoteStudents() {
               </table>
             </div>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  gap: 8,
-                  marginTop: 20,
-                  padding: '16px 0',
-                }}
-              >
-                <button
-                  className="btn btn-ghost btn-sm"
-                  onClick={() => paginate(currentPage - 1)}
-                  disabled={currentPage === 1}
-                >
-                  <FiChevronLeft />
-                </button>
-
-                <span style={{ fontSize: '0.875rem' }}>
-                  Page {currentPage} of {totalPages}
-                </span>
-
-                <button
-                  className="btn btn-ghost btn-sm"
-                  onClick={() => paginate(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                >
-                  <FiChevronRight />
-                </button>
+            {/* Pagination Component */}
+            {students.length > 0 && (
+              <div style={{ marginTop: 16 }}>
+                <Pagination
+                  currentPage={pagination?.currentPage || currentPage}
+                  totalPages={pagination?.totalPages || 1}
+                  pageSize={pageSize}
+                  totalCount={pagination?.totalCount || students.length}
+                  onPageChange={handlePageChange}
+                  isLoading={loading}
+                />
               </div>
             )}
           </>

@@ -5,10 +5,11 @@ using System.Threading.Tasks;
 using AYA_UIS.Application.Dtos.CourseDtos;
 using AYA_UIS.Domain.Queries;
 using MediatR;
+using Shared.Respones;
 
 namespace AYA_UIS.Application.Queries.Courses
 {
-    public class GetDepartmentCoursesQuery : IRequest<IEnumerable<DepartmentCourseDto>>
+    public class GetDepartmentCoursesQuery : IRequest<PagedResponse<DepartmentCourseDto>>
     {
         public int DepartmentId { get; set; }
         public DepartmentCourseQuery Query { get; set; }

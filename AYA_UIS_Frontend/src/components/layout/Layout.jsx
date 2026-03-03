@@ -71,6 +71,12 @@ export default function Layout() {
       roles: ['Admin'],
     },
     {
+      to: ROUTES.ADMIN.USERS,
+      icon: <FiUsers />,
+      label: 'Users',
+      roles: ['Admin'],
+    },
+    {
       to: ROUTES.ADMIN.STUDY_YEARS,
       icon: <FiCalendar />,
       label: 'Study Years',

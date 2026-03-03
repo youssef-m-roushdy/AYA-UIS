@@ -1,8 +1,11 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { FiBook, FiFilter, FiX, FiList, FiGitBranch } from 'react-icons/fi';
+import { FiBook, FiFilter, FiX, FiList, FiGitBranch, FiActivity } from 'react-icons/fi';
 import courseService from '../../services/courseService';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
+import Pagination from '../../components/common/Pagination';
+import SortMenu from '../../components/common/SortMenu';
+import FilterSelect from '../../components/common/FilterSelect';
 
 export default function DepartmentCourses() {
   const { user } = useAuth();
@@ -17,6 +20,25 @@ export default function DepartmentCourses() {
   });
   const [filterApplied, setFilterApplied] = useState(false);
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10; // Fixed page size
+  const [sortBy, setSortBy] = useState(null);
+  const [sortDirection, setSortDirection] = useState('Ascending');
+  const [pagination, setPagination] = useState(null);
+
+  const sortOptions = [
+    { value: 'Code', label: 'Course Code' },
+    { value: 'Name', label: 'Course Name' },
+    { value: 'Credits', label: 'Credits' },
+  ];
+
+  // FilterSelect option arrays
+  const statusOptions = [
+    { value: 'Opened', label: 'Opened', dotColor: 'success' },
+    { value: 'Closed', label: 'Closed', dotColor: 'danger' },
+  ];
+
   const departmentId = user?.departmentId;
 
   const loadCourses = useCallback(async () => {
@@ -27,12 +49,35 @@ export default function DepartmentCourses() {
 
     setLoading(true);
     try {
-      // Build query params - only include non-empty values
-      const params = {};
-      if (filters.status) params.Status = filters.status;
+      // Build filter params
+      const filterParams = {};
+      if (filters.status) filterParams.Status = filters.status;
 
-      const res = await courseService.getDeptCourses(departmentId, params);
-      setCourses(res?.data || res || []);
+      const res = await courseService.getDeptCourses(
+        departmentId,
+        filterParams,
+        currentPage,
+        pageSize,
+        sortBy,
+        sortDirection
+      );
+
+      let coursesData = [];
+      let paginationData = null;
+
+      if (res?.data) {
+        coursesData = res.data;
+        paginationData = res.pagination;
+      } else if (Array.isArray(res)) {
+        coursesData = res;
+      } else {
+        coursesData = res || [];
+      }
+
+      setCourses(coursesData);
+      if (paginationData) {
+        setPagination(paginationData);
+      }
 
       // Check if filter is applied
       setFilterApplied(filters.status !== '');
@@ -41,7 +86,14 @@ export default function DepartmentCourses() {
       setCourses([]);
     }
     setLoading(false);
-  }, [departmentId, filters.status]);
+  }, [
+    departmentId,
+    filters.status,
+    currentPage,
+    pageSize,
+    sortBy,
+    sortDirection,
+  ]);
 
   useEffect(() => {
     loadCourses();
@@ -49,12 +101,24 @@ export default function DepartmentCourses() {
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));
+    setCurrentPage(1); // Reset to first page when filter changes
   };
 
   const clearFilters = () => {
     setFilters({
       status: '',
     });
+    setCurrentPage(1); // Reset pagination
+  };
+
+  const handlePageChange = newPage => {
+    setCurrentPage(newPage);
+  };
+
+  const handleSortChange = (field, direction) => {
+    setSortBy(field);
+    setSortDirection(direction);
+    setCurrentPage(1); // Reset to first page when sorting changes
   };
 
   // View prerequisites modal
@@ -156,11 +220,11 @@ export default function DepartmentCourses() {
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              marginBottom: 16,
+              marginBottom: 18,
             }}
           >
-            <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>
-              Filter Courses by Status
+            <h3 style={{ margin: 0, fontSize: '0.9375rem', fontWeight: 600 }}>
+              Filter Courses
             </h3>
             {filterApplied && (
               <button
@@ -168,52 +232,58 @@ export default function DepartmentCourses() {
                 onClick={clearFilters}
                 style={{ display: 'flex', alignItems: 'center', gap: 4 }}
               >
-                <FiX size={14} /> Clear Filter
+                <FiX size={13} /> Clear Filter
               </button>
             )}
           </div>
 
-          <div style={{ maxWidth: 300 }}>
-            <div className="form-group">
-              <label
-                style={{
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  marginBottom: 6,
-                }}
-              >
-                Course Status
-              </label>
-              <select
-                className="form-control"
-                value={filters.status}
-                onChange={e => handleFilterChange('status', e.target.value)}
-              >
-                <option value="">All Courses</option>
-                <option value="Opened">Opened Only</option>
-                <option value="Closed">Closed Only</option>
-              </select>
-            </div>
+          {/* FilterSelect row */}
+          <div
+            style={{
+              display: 'flex',
+              gap: 12,
+              flexWrap: 'wrap',
+              alignItems: 'flex-end',
+            }}
+          >
+            {/* Status */}
+            <FilterSelect
+              label="Status"
+              value={filters.status}
+              onChange={val => handleFilterChange('status', val)}
+              options={statusOptions}
+              placeholder="All Courses"
+              icon={<FiActivity size={13} />}
+            />
           </div>
 
-          {/* Active Filter Indicator */}
+          {/* Active filter chips */}
           {filterApplied && (
             <div
               style={{
                 marginTop: 16,
-                paddingTop: 16,
-                borderTop: '1px solid var(--border)',
+                paddingTop: 14,
+                borderTop: '1px solid #f1f5f9',
                 display: 'flex',
-                gap: 8,
+                gap: 6,
                 flexWrap: 'wrap',
+                alignItems: 'center',
               }}
             >
               <span
-                style={{ fontSize: '0.875rem', color: 'var(--text-light)' }}
+                style={{
+                  fontSize: '0.8125rem',
+                  color: '#94a3b8',
+                  fontWeight: 500,
+                }}
               >
-                Active filter:
+                Active:
               </span>
-              <span className="badge badge-info">Status: {filters.status}</span>
+              {filters.status && (
+                <span className="badge badge-info">
+                  Status: {filters.status}
+                </span>
+              )}
             </div>
           )}
         </div>
@@ -226,12 +296,22 @@ export default function DepartmentCourses() {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
+          gap: '12px',
+          flexWrap: 'wrap',
         }}
       >
         <span className="badge badge-info" style={{ fontSize: '0.875rem' }}>
-          {courses.length} course{courses.length !== 1 ? 's' : ''} found
+          {pagination?.totalCount || courses.length} course
+          {(pagination?.totalCount || courses.length) !== 1 ? 's' : ''} found
           {filterApplied && ` (filtered by ${filters.status})`}
         </span>
+        <SortMenu
+          sortBy={sortBy}
+          sortDirection={sortDirection}
+          onSortChange={handleSortChange}
+          sortOptions={sortOptions}
+          isLoading={loading}
+        />
         {loading && (
           <span style={{ color: 'var(--text-light)' }}>Updating...</span>
         )}
@@ -327,6 +407,20 @@ export default function DepartmentCourses() {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination Component */}
+          {courses.length > 0 && (
+            <div style={{ marginTop: 16 }}>
+              <Pagination
+                currentPage={pagination?.currentPage || currentPage}
+                totalPages={pagination?.totalPages || 1}
+                pageSize={pageSize}
+                totalCount={pagination?.totalCount || courses.length}
+                onPageChange={handlePageChange}
+                isLoading={loading}
+              />
+            </div>
+          )}
         </div>
       )}
 

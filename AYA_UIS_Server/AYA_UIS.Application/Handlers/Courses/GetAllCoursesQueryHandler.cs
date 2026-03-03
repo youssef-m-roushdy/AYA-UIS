@@ -11,7 +11,7 @@ using Shared.Respones;
 
 namespace AYA_UIS.Application.Handlers.Courses
 {
-    public class GetAllCoursesQueryHandler : IRequestHandler<GetAllCoursesQuery, Response<IEnumerable<CourseDto>>>
+    public class GetAllCoursesQueryHandler : IRequestHandler<GetAllCoursesQuery, PagedResponse<CourseDto>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -21,11 +21,11 @@ namespace AYA_UIS.Application.Handlers.Courses
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
-        public async Task<Response<IEnumerable<CourseDto>>> Handle(GetAllCoursesQuery request, CancellationToken cancellationToken)
+        public async Task<PagedResponse<CourseDto>> Handle(GetAllCoursesQuery request, CancellationToken cancellationToken)
         {
-            var courses = await _unitOfWork.Courses.GetFilteredCoursesAsync(request.Query);
+            var (courses, totalCount) = await _unitOfWork.Courses.GetFilteredCoursesWithPaginationAsync(request.Query);
             var result = _mapper.Map<IEnumerable<CourseDto>>(courses);
-            return Response<IEnumerable<CourseDto>>.SuccessResponse(result);
+            return PagedResponse<CourseDto>.SuccessResponse(result, request.Query.PageNumber, request.Query.PageSize, totalCount);
         }
     }
 }

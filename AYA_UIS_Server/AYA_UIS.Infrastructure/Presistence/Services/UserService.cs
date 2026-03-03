@@ -10,6 +10,7 @@ using AYA_UIS.Domain.Entities.Identity;
 using AYA_UIS.Domain.Enums;
 using AYA_UIS.Domain.Queries;
 using AYA_UIS.Shared.Exceptions;
+using AYA_UIS.Infrastructure.Presistence.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -51,6 +52,10 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
             if (!string.IsNullOrEmpty(query.Academic_Code))
                 usersQuery = usersQuery.Where(u => u.AcademicCode == query.Academic_Code);
 
+            // Filter by Name
+            if (!string.IsNullOrEmpty(query.Name))
+                usersQuery = usersQuery.Where(u => u.DisplayName.Contains(query.Name));
+
             // Filter by Gender
             if (query.Gender.HasValue)
                 usersQuery = usersQuery.Where(u => u.Gender == query.Gender.Value);
@@ -59,22 +64,6 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
             if (query.Level.HasValue)
                 usersQuery = usersQuery.Where(u => u.Level == query.Level.Value);
 
-            // Filter by TotalCredits
-            if (query.TotalCredits.HasValue)
-                usersQuery = usersQuery.Where(u => u.TotalCredits == query.TotalCredits.Value);
-
-            // Filter by AllowedCredits
-            if (query.AllowedCredits.HasValue)
-                usersQuery = usersQuery.Where(u => u.AllowedCredits == query.AllowedCredits.Value);
-
-            // Filter by TotalGPA
-            if (query.TotalGPA.HasValue)
-                usersQuery = usersQuery.Where(u => u.TotalGPA == query.TotalGPA.Value);
-
-            // Filter by Specialization
-            if (!string.IsNullOrEmpty(query.Specialization))
-                usersQuery = usersQuery.Where(u => u.Specialization == query.Specialization);
-
             // Filter by DepartmentId
             if (query.DepartmentId.HasValue)
                 usersQuery = usersQuery.Where(u => u.DepartmentId == query.DepartmentId.Value);
@@ -82,6 +71,56 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
             var users = await usersQuery.ToListAsync();
 
             return _mapper.Map<IEnumerable<UserDto>>(users);
+        }
+
+        public async Task<(IEnumerable<UserDto> Data, int TotalCount)> GetAllUsersWithPaginationAsync(string userId, UserQueries query)
+        {
+            var usersQuery = _dbContext.Users
+                .Where(u => u.Id != userId)
+                .Include(u => u.UserRoles)
+                    .ThenInclude(ur => ur.Role)
+                .Include(u => u.Department)
+                .AsNoTracking()
+                .AsQueryable();
+
+            // Filter by Role
+            if (!string.IsNullOrEmpty(query.Role))
+                usersQuery = usersQuery.Where(u => u.UserRoles.Any(ur => ur.Role.Name == query.Role));
+
+            // Filter by Academic Code
+            if (!string.IsNullOrEmpty(query.Academic_Code))
+                usersQuery = usersQuery.Where(u => u.AcademicCode.Contains(query.Academic_Code));
+
+            // Filter by Name
+            if (!string.IsNullOrEmpty(query.Name))
+                usersQuery = usersQuery.Where(u => u.DisplayName.Contains(query.Name));
+
+            // Filter by Gender
+            if (query.Gender.HasValue)
+                usersQuery = usersQuery.Where(u => u.Gender == query.Gender.Value);
+
+            // Filter by Level
+            if (query.Level.HasValue)
+                usersQuery = usersQuery.Where(u => u.Level == query.Level.Value);
+
+
+            // Filter by DepartmentId
+            if (query.DepartmentId.HasValue)
+                usersQuery = usersQuery.Where(u => u.DepartmentId == query.DepartmentId.Value);
+
+            // Apply sorting
+            usersQuery = usersQuery.ApplySorting(query.SortBy ?? "DisplayName", query.SortDirection);
+
+            // Get total count before pagination
+            var totalCount = await usersQuery.CountAsync();
+
+            // Apply pagination
+            usersQuery = usersQuery.ApplyPagination(query);
+
+            var users = await usersQuery.ToListAsync();
+            var result = _mapper.Map<IEnumerable<UserDto>>(users);
+
+            return (result, totalCount);
         }
 
         public async Task<IEnumerable<UserDto>> GetUnGraduateStudentUsers(string userId, StudentQueries query)
@@ -99,7 +138,11 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
 
             // Filter by Academic Code
             if (!string.IsNullOrEmpty(query.Academic_Code))
-                usersQuery = usersQuery.Where(u => u.AcademicCode == query.Academic_Code);
+                usersQuery = usersQuery.Where(u => u.AcademicCode.Contains(query.Academic_Code));
+
+            // Filter by Name
+            if (!string.IsNullOrEmpty(query.Name))
+                usersQuery = usersQuery.Where(u => u.DisplayName.Contains(query.Name));
 
             // Filter by Gender
             if (query.Gender.HasValue)
@@ -109,21 +152,25 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
             if (query.Level.HasValue)
                 usersQuery = usersQuery.Where(u => u.Level == query.Level.Value);
 
-            // Filter by TotalCredits
-            if (query.TotalCredits.HasValue)
-                usersQuery = usersQuery.Where(u => u.TotalCredits == query.TotalCredits.Value);
+            // Filter by Min GPA
+            if (query.MinGPA.HasValue)
+                usersQuery = usersQuery.Where(u => u.TotalGPA >= query.MinGPA.Value);
 
-            // Filter by AllowedCredits
-            if (query.AllowedCredits.HasValue)
-                usersQuery = usersQuery.Where(u => u.AllowedCredits == query.AllowedCredits.Value);
+            // Filter by Max GPA
+            if (query.MaxGPA.HasValue)
+                usersQuery = usersQuery.Where(u => u.TotalGPA <= query.MaxGPA.Value);
 
-            // Filter by TotalGPA
-            if (query.TotalGPA.HasValue)
-                usersQuery = usersQuery.Where(u => u.TotalGPA == query.TotalGPA.Value);
+            // Filter by Min Credits
+            if (query.MinCredits.HasValue)
+                usersQuery = usersQuery.Where(u => u.TotalCredits >= query.MinCredits.Value);
+
+            // Filter by Max Credits
+            if (query.MaxCredits.HasValue)
+                usersQuery = usersQuery.Where(u => u.TotalCredits <= query.MaxCredits.Value);
 
             // Filter by Specialization
             if (!string.IsNullOrEmpty(query.Specialization))
-                usersQuery = usersQuery.Where(u => u.Specialization == query.Specialization);
+                usersQuery = usersQuery.Where(u => u.Specialization.Contains(query.Specialization));
 
             // Filter by DepartmentId
             if (query.DepartmentId.HasValue)
@@ -132,6 +179,73 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
             var users = await usersQuery.ToListAsync();
 
             return _mapper.Map<IEnumerable<UserDto>>(users);
+        }
+
+        public async Task<(IEnumerable<UserDto> Data, int TotalCount)> GetUnGraduateStudentUsersWithPaginationAsync(string userId, StudentQueries query)
+        {
+            var usersQuery = _dbContext.Users
+                .Where(u => u.Id != userId && u.Level != Levels.Graduate)
+                .Include(u => u.UserRoles)
+                    .ThenInclude(ur => ur.Role)
+                .Include(u => u.Department)
+                .AsNoTracking()
+                .AsQueryable();
+
+            usersQuery = usersQuery.Where(u => u.UserRoles.Any(ur => ur.Role.Name == "Student"));
+
+            // Filter by Academic Code
+            if (!string.IsNullOrEmpty(query.Academic_Code))
+                usersQuery = usersQuery.Where(u => u.AcademicCode.Contains(query.Academic_Code));
+
+            // Filter by Name
+            if (!string.IsNullOrEmpty(query.Name))
+                usersQuery = usersQuery.Where(u => u.DisplayName.Contains(query.Name));
+
+            // Filter by Gender
+            if (query.Gender.HasValue)
+                usersQuery = usersQuery.Where(u => u.Gender == query.Gender.Value);
+
+            // Filter by Level
+            if (query.Level.HasValue)
+                usersQuery = usersQuery.Where(u => u.Level == query.Level.Value);
+
+            // Filter by Min GPA
+            if (query.MinGPA.HasValue)
+                usersQuery = usersQuery.Where(u => u.TotalGPA >= query.MinGPA.Value);
+
+            // Filter by Max GPA
+            if (query.MaxGPA.HasValue)
+                usersQuery = usersQuery.Where(u => u.TotalGPA <= query.MaxGPA.Value);
+
+            // Filter by Min Credits
+            if (query.MinCredits.HasValue)
+                usersQuery = usersQuery.Where(u => u.TotalCredits >= query.MinCredits.Value);
+
+            // Filter by Max Credits
+            if (query.MaxCredits.HasValue)
+                usersQuery = usersQuery.Where(u => u.TotalCredits <= query.MaxCredits.Value);
+
+            // Filter by Specialization
+            if (!string.IsNullOrEmpty(query.Specialization))
+                usersQuery = usersQuery.Where(u => u.Specialization.Contains(query.Specialization));
+
+            // Filter by DepartmentId
+            if (query.DepartmentId.HasValue)
+                usersQuery = usersQuery.Where(u => u.DepartmentId == query.DepartmentId.Value);
+
+            // Apply sorting
+            usersQuery = usersQuery.ApplySorting(query.SortBy ?? "DisplayName", query.SortDirection);
+
+            // Get total count before pagination
+            var totalCount = await usersQuery.CountAsync();
+
+            // Apply pagination
+            usersQuery = usersQuery.ApplyPagination(query);
+
+            var users = await usersQuery.ToListAsync();
+            var result = _mapper.Map<IEnumerable<UserDto>>(users);
+
+            return (result, totalCount);
         }
 
         public async Task<IEnumerable<UserDto>> GetAllStudentUsers(string userId, StudentQueries query)
@@ -149,7 +263,11 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
 
             // Filter by Academic Code
             if (!string.IsNullOrEmpty(query.Academic_Code))
-                usersQuery = usersQuery.Where(u => u.AcademicCode == query.Academic_Code);
+                usersQuery = usersQuery.Where(u => u.AcademicCode.Contains(query.Academic_Code));
+
+            // Filter by Name
+            if (!string.IsNullOrEmpty(query.Name))
+                usersQuery = usersQuery.Where(u => u.DisplayName.Contains(query.Name));
 
             // Filter by Gender
             if (query.Gender.HasValue)
@@ -159,21 +277,25 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
             if (query.Level.HasValue)
                 usersQuery = usersQuery.Where(u => u.Level == query.Level.Value);
 
-            // Filter by TotalCredits
-            if (query.TotalCredits.HasValue)
-                usersQuery = usersQuery.Where(u => u.TotalCredits == query.TotalCredits.Value);
+            // Filter by Min GPA
+            if (query.MinGPA.HasValue)
+                usersQuery = usersQuery.Where(u => u.TotalGPA >= query.MinGPA.Value);
 
-            // Filter by AllowedCredits
-            if (query.AllowedCredits.HasValue)
-                usersQuery = usersQuery.Where(u => u.AllowedCredits == query.AllowedCredits.Value);
+            // Filter by Max GPA
+            if (query.MaxGPA.HasValue)
+                usersQuery = usersQuery.Where(u => u.TotalGPA <= query.MaxGPA.Value);
 
-            // Filter by TotalGPA
-            if (query.TotalGPA.HasValue)
-                usersQuery = usersQuery.Where(u => u.TotalGPA == query.TotalGPA.Value);
+            // Filter by Min Credits
+            if (query.MinCredits.HasValue)
+                usersQuery = usersQuery.Where(u => u.TotalCredits >= query.MinCredits.Value);
+
+            // Filter by Max Credits
+            if (query.MaxCredits.HasValue)
+                usersQuery = usersQuery.Where(u => u.TotalCredits <= query.MaxCredits.Value);
 
             // Filter by Specialization
             if (!string.IsNullOrEmpty(query.Specialization))
-                usersQuery = usersQuery.Where(u => u.Specialization == query.Specialization);
+                usersQuery = usersQuery.Where(u => u.Specialization.Contains(query.Specialization));
 
             // Filter by DepartmentId
             if (query.DepartmentId.HasValue)
@@ -182,6 +304,73 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
             var users = await usersQuery.ToListAsync();
 
             return _mapper.Map<IEnumerable<UserDto>>(users);
+        }
+
+        public async Task<(IEnumerable<UserDto> Data, int TotalCount)> GetAllStudentUsersWithPaginationAsync(string userId, StudentQueries query)
+        {
+            var usersQuery = _dbContext.Users
+                .Where(u => u.Id != userId)
+                .Include(u => u.UserRoles)
+                    .ThenInclude(ur => ur.Role)
+                .Include(u => u.Department)
+                .AsNoTracking()
+                .AsQueryable();
+
+            usersQuery = usersQuery.Where(u => u.UserRoles.Any(ur => ur.Role.Name == "Student"));
+
+            // Filter by Academic Code
+            if (!string.IsNullOrEmpty(query.Academic_Code))
+                usersQuery = usersQuery.Where(u => u.AcademicCode.Contains(query.Academic_Code));
+
+            // Filter by Name
+            if (!string.IsNullOrEmpty(query.Name))
+                usersQuery = usersQuery.Where(u => u.DisplayName.Contains(query.Name));
+
+            // Filter by Gender
+            if (query.Gender.HasValue)
+                usersQuery = usersQuery.Where(u => u.Gender == query.Gender.Value);
+
+            // Filter by Level
+            if (query.Level.HasValue)
+                usersQuery = usersQuery.Where(u => u.Level == query.Level.Value);
+
+            // Filter by Min GPA
+            if (query.MinGPA.HasValue)
+                usersQuery = usersQuery.Where(u => u.TotalGPA >= query.MinGPA.Value);
+
+            // Filter by Max GPA
+            if (query.MaxGPA.HasValue)
+                usersQuery = usersQuery.Where(u => u.TotalGPA <= query.MaxGPA.Value);
+
+            // Filter by Min Credits
+            if (query.MinCredits.HasValue)
+                usersQuery = usersQuery.Where(u => u.TotalCredits >= query.MinCredits.Value);
+
+            // Filter by Max Credits
+            if (query.MaxCredits.HasValue)
+                usersQuery = usersQuery.Where(u => u.TotalCredits <= query.MaxCredits.Value);
+
+            // Filter by Specialization
+            if (!string.IsNullOrEmpty(query.Specialization))
+                usersQuery = usersQuery.Where(u => u.Specialization.Contains(query.Specialization));
+
+            // Filter by DepartmentId
+            if (query.DepartmentId.HasValue)
+                usersQuery = usersQuery.Where(u => u.DepartmentId == query.DepartmentId.Value);
+
+            // Apply sorting
+            usersQuery = usersQuery.ApplySorting(query.SortBy ?? "DisplayName", query.SortDirection);
+
+            // Get total count before pagination
+            var totalCount = await usersQuery.CountAsync();
+
+            // Apply pagination
+            usersQuery = usersQuery.ApplyPagination(query);
+
+            var users = await usersQuery.ToListAsync();
+            var result = _mapper.Map<IEnumerable<UserDto>>(users);
+
+            return (result, totalCount);
         }
 
         public async Task<userProfileDetailsDto> GetUserProfileByAcademicCodeAsync(string academicCode)
