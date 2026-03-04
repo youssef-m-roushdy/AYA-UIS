@@ -1,11 +1,9 @@
-using System;
 using AYA_UIS.Application.Contracts;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;// Fix: Change from Services.Implementatios
-using Shared.Common;
-using AYA_UIS.Domain.Entities.Identity;
 using AYA_UIS.Domain.Contracts;
+using AYA_UIS.Domain.Entities.Identity;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
+using Shared.Settings;
 
 namespace AYA_UIS.Infrastructure.Presistence.Services
 {
@@ -14,19 +12,23 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
         private readonly Lazy<IAuthenticationService> _authService;
         private readonly Lazy<IRoleService> _roleService;
         private readonly Lazy<IUserService> _userService;
-        private readonly IUnitOfWork _unitOfWork;
 
         public ServiceManager(
             UserManager<User> userManager,
-            IOptions<JwtOptions> options,
             RoleManager<Role> roleManager,
-            IUserService userService, // Fix: Use the interface instead of concrete class
-            IUnitOfWork unitOfWork) // Fix: Add IUnitOfWork to the constructor
+            IJwtService jwtService,
+            IOptions<JwtSettings> settings,
+            IUserService userService,
+            IUnitOfWork unitOfWork,
+            UniversityDbContext context) // ← ADD
         {
             _authService = new Lazy<IAuthenticationService>(
-                () => new AuthenticationService(userManager, options, roleManager, unitOfWork));
+                () => new AuthenticationService(
+                    userManager, roleManager, jwtService, settings, unitOfWork, context)); // ← ADD
+
             _roleService = new Lazy<IRoleService>(
                 () => new RoleService(roleManager, userManager));
+
             _userService = new Lazy<IUserService>(
                 () => userService);
         }

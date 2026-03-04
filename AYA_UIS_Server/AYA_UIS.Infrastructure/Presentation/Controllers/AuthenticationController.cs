@@ -15,62 +15,50 @@ namespace AYA_UIS.Infrastructure.Presentation.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [EnableRateLimiting("PolicyLimitRate")]
-    public class AuthenticationController (IServiceManager _serviceManager):ControllerBase
+    public class AuthenticationController : ControllerBase
     {
 
-        // Post =>  Register 
-        [HttpPost("Register")]
+        private readonly IServiceManager _serviceManager;
 
-        [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<UserResultDto>> RegisterAsync(RegisterDto registerDto, string role = "Student")
+        public AuthenticationController(IServiceManager serviceManager)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new { errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage) });
-            }
-            var userResult = await _serviceManager.AuthenticationService.RegisterAsync(registerDto, role);
-
-            return Ok(userResult);
+            _serviceManager = serviceManager;
         }
 
-        [HttpPost("register-student/{departmentId}/department")]
-        [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<UserResultDto>> RegisterStudentAsync(int departmentId, RegisterStudentDto registerStudentDto)
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterDto dto, [FromQuery] string role = "Student")
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new { errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage) });
-            }
-            var userResult = await _serviceManager.AuthenticationService.RegisterStudentAsync(departmentId, registerStudentDto);
-
-            return Ok(userResult);
-        }
-
-        // Post = >  Login 
-        [HttpPost("Login")]
-        public async Task<ActionResult<UserResultDto>> LoginAsync(LoginDto loginDto)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new { errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage) });
-            }
-
-            var userResult = await _serviceManager.AuthenticationService.LoginAsync(loginDto);
-            return Ok(userResult);
-        }
-
-
-        [HttpPut("reset-password")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> ResetPasswordByAdmin(ResetPasswordDto resetPasswordDto)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new { errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage) });
-            }
-
-            var result = await _serviceManager.AuthenticationService.ResetPasswordAsync(resetPasswordDto.Email , resetPasswordDto.NewPassword);
+            var result = await _serviceManager.AuthenticationService.RegisterAsync(dto, role);
             return Ok(result);
+        }
+
+        [HttpPost("register/student/{departmentId:int}")]
+        public async Task<IActionResult> RegisterStudent(int departmentId, [FromBody] RegisterStudentDto dto)
+        {
+            var result = await _serviceManager.AuthenticationService.RegisterStudentAsync(departmentId, dto);
+            return Ok(result);
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginDto dto)
+        {
+            var result = await _serviceManager.AuthenticationService.LoginAsync(dto);
+            return Ok(result);
+        }
+
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequestDto dto)
+        {
+            var result = await _serviceManager.AuthenticationService.RefreshTokenAsync(dto.RefreshToken);
+            return Ok(result);
+        }
+
+        [Authorize]
+        [HttpPost("revoke")]
+        public async Task<IActionResult> Revoke([FromBody] RefreshTokenRequestDto dto)
+        {
+            await _serviceManager.AuthenticationService.RevokeTokenAsync(dto.RefreshToken);
+            return Ok(new { message = "Token revoked successfully." });
         }
 
     }

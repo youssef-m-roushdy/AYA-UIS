@@ -6,7 +6,6 @@ using AYA_UIS.MiddelWares;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
-using Shared.Common;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
@@ -22,6 +21,7 @@ using AYA_UIS.Domain.Contracts;
 using AYA_UIS.Infrastructure.Presistence.Repositories;
 using AYA_UIS.Infrastructure.Presistence.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Shared.Settings;
 
 namespace AYA_UIS
 {
@@ -55,36 +55,31 @@ namespace AYA_UIS
                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
            );
 
-            #region Auth
-            builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JwtOptions"));
-            var jwtOptions = builder.Configuration.GetSection("JwtOptions").Get<JwtOptions>();
-            builder.Services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+            var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()!;
 
-            }).AddJwtBearer(options =>
-            {
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey));
 
-                var publicKey = File.ReadAllText("Keys/public_key.pem");
-
-                var rsa = RSA.Create();
-                rsa.ImportFromPem(publicKey);
-
-                options.TokenValidationParameters = new TokenValidationParameters()
+            builder.Services
+                .AddAuthentication(options =>
                 {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = jwtOptions.Issuer,
-                    ValidAudience = jwtOptions.Audience,
-                    IssuerSigningKey = new RsaSecurityKey(rsa),
-
-
-                };
-
-            });
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = jwtSettings.Issuer,
+                        ValidAudience = jwtSettings.Audience,
+                        IssuerSigningKey = key,
+                        ClockSkew = TimeSpan.Zero
+                    };
+                });
 
             builder.Services.AddAuthorization();
 
@@ -100,29 +95,29 @@ namespace AYA_UIS
             .AddEntityFrameworkStores<UniversityDbContext>()
             .AddDefaultTokenProviders()
             .AddSignInManager<SignInManager<User>>();
+
             builder.Services.AddScoped<IDataSeeding, DataSeeding>();
 
-            // Rate Limit 
             builder.Services.AddRateLimiter(options =>
             {
-
                 options.AddPolicy("PolicyLimitRate", httpContext =>
-                {
-                    return RateLimitPartition.GetFixedWindowLimiter(
+                    RateLimitPartition.GetFixedWindowLimiter(
                         partitionKey: httpContext.Connection.RemoteIpAddress!.ToString(),
-                        factory: key => new FixedWindowRateLimiterOptions
+                        factory: _ => new FixedWindowRateLimiterOptions
                         {
                             PermitLimit = 3,
                             Window = TimeSpan.FromMinutes(1),
                             QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                             QueueLimit = 2
-                        });
-                });
+                        }));
             });
 
+            // JWT + Auth services
+            builder.Services.AddScoped<IJwtService, JwtService>();
+            builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 
 
-            #endregion
+
             // MediatR for CQRS
             builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AYA_UIS.Application.AssemblyReference).Assembly));
 
