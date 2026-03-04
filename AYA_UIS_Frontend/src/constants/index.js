@@ -7,6 +7,8 @@ export const API_ENDPOINTS = {
     REGISTER_STUDENT: deptId =>
       `${API_BASE}/Authentication/register-student/${deptId}/department`,
     RESET_PASSWORD: `${API_BASE}/Authentication/reset-password`,
+    REFRESH: `${API_BASE}/Authentication/refresh`, // ← ADD
+    REVOKE: `${API_BASE}/Authentication/revoke`,
   },
   USER: {
     BY_ACADEMIC_CODE: code => `${API_BASE}/User/${code}/academic`,
@@ -132,7 +134,11 @@ export const USER_ROLES = {
   INSTRUCTOR: 'Instructor',
   STUDENT: 'Student',
 };
-export const STORAGE_KEYS = { TOKEN: 'authToken', USER: 'userData' };
+export const STORAGE_KEYS = {
+  ACCESS_TOKEN: 'accessToken',
+  REFRESH_TOKEN: 'refreshToken',
+  USER: 'userData',
+};
 export const STATUS = {
   IDLE: 'idle',
   LOADING: 'loading',

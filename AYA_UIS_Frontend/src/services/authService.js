@@ -4,11 +4,15 @@ import { API_ENDPOINTS, STORAGE_KEYS } from '../constants';
 const authService = {
   async login(email, password) {
     const data = await api.post(API_ENDPOINTS.AUTH.LOGIN, { email, password });
-    if (data?.token) {
-      localStorage.setItem(STORAGE_KEYS.TOKEN, data.token);
-      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(data));
+    if (data?.accessToken && data?.refreshToken && data?.user) {
+      api.setTokens(data.accessToken, data.refreshToken); // ← use api helper
+      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(data.user));
     }
     return data;
+  },
+
+  logout() {
+    api.clearTokens(); // ← use api helper (clears all 3 keys)
   },
 
   async register(userData, role = 'Student') {
@@ -24,7 +28,8 @@ const authService = {
   },
 
   logout() {
-    localStorage.removeItem(STORAGE_KEYS.TOKEN);
+    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+    localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
     localStorage.removeItem(STORAGE_KEYS.USER);
   },
 
@@ -34,12 +39,13 @@ const authService = {
   },
 
   isAuthenticated() {
-    return !!localStorage.getItem(STORAGE_KEYS.TOKEN);
+    return !!localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
   },
 
+  // Helper methods for role-based access control
   getUserRole() {
-    const u = this.getCurrentUser();
-    return u?.role || null;
+    const user = this.getCurrentUser();
+    return user?.role || null;
   },
 
   hasRole(role) {

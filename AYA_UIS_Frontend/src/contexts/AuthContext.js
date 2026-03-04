@@ -54,7 +54,8 @@ export function AuthProvider({ children }) {
     dispatch({ type: 'LOADING' });
     try {
       const data = await authService.login(email, password);
-      dispatch({ type: 'LOGIN_SUCCESS', payload: data });
+      console.log('Login successful:', data);
+      dispatch({ type: 'LOGIN_SUCCESS', payload: data.user });
       return data;
     } catch (err) {
       dispatch({

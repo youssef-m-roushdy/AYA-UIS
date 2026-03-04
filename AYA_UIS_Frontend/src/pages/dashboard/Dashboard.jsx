@@ -47,6 +47,7 @@ export default function Dashboard() {
               }))
               .catch(() => ({ type: 'courses', data: 0 }))
           );
+          console.log('Admin stats loaded:', promises);
         }
 
         // Student data
