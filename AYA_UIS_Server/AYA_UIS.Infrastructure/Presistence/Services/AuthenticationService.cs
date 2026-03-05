@@ -30,6 +30,8 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
         private readonly IJwtService _jwtService;
         private readonly JwtSettings _settings;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IEmailService _emailService;
+        private readonly EmailSettings _emailSettings; // ← ADD
         private readonly UniversityDbContext _context; // ← ADD
 
         public AuthenticationService(
@@ -37,7 +39,9 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
             RoleManager<Role> roleManager,
             IJwtService jwtService,
             IOptions<JwtSettings> settings,
+            IOptions<EmailSettings> emailSettings,  // ← ADD
             IUnitOfWork unitOfWork,
+            IEmailService emailService,
             UniversityDbContext context) // ← ADD
         {
             _userManager = userManager;
@@ -45,7 +49,9 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
             _jwtService = jwtService;
             _settings = settings.Value;
             _unitOfWork = unitOfWork;
+            _emailSettings = emailSettings.Value; // ← ADD
             _context = context; // ← ADD
+            _emailService = emailService;
         }
 
         // ── Login ──────────────────────────────────────────────────────────────
@@ -179,20 +185,65 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
             await _context.SaveChangesAsync();
         }
 
-        // ── Reset password ─────────────────────────────────────────────────────
-        public async Task<string> ResetPasswordAsync(string email, string newPassword)
+        // ── Forgot password ────────────────────────────────────────────────────────
+        public async Task ForgotPasswordAsync(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null) 
+                throw new NotFoundException("No user not found use that email."); // silent — never reveal if email exists
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var encodedToken = Uri.EscapeDataString(token);
+            var encodedEmail = Uri.EscapeDataString(email);
+            var resetLink = $"{_emailSettings.FrontendBaseUrl}/reset-password?email={encodedEmail}&token={encodedToken}";
+
+            await _emailService.SendPasswordResetEmailAsync(
+                to: email,
+                displayName: user.DisplayName ?? user.UserName ?? "Student",
+                resetLink: resetLink
+            );
+        }
+
+        // ── Reset password ─────────────────────────────────────────────────────────
+        public async Task<string> ResetPasswordAsync(string email, string token, string newPassword)
         {
             var user = await _userManager.FindByEmailAsync(email)
                 ?? throw new NotFoundException($"No user with email '{email}'.");
 
-            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            var result = await _userManager.ResetPasswordAsync(user, token, newPassword);
+            var decodedToken = Uri.UnescapeDataString(token);
+            var result = await _userManager.ResetPasswordAsync(user, decodedToken, newPassword);
 
-            return result.Succeeded
-                ? "Password updated successfully."
-                : string.Join(" | ", result.Errors.Select(e => e.Description));
+            if (!result.Succeeded)
+                return string.Join(" | ", result.Errors.Select(e => e.Description));
+
+            // Send confirmation email
+            await _emailService.SendPasswordChangedConfirmationAsync(
+                to: email,
+                displayName: user.DisplayName ?? user.UserName ?? "Student"
+            );
+
+            return "Password reset successfully.";
         }
 
+        // ── Change password (authorized) ──────────────────────────────────────────
+        public async Task<string> ChangePasswordAsync(string email, string currentPassword, string newPassword)
+        {
+            var user = await _userManager.FindByEmailAsync(email)
+                ?? throw new NotFoundException($"No user with email '{email}'.");
+
+            var result = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+
+            if (!result.Succeeded)
+                return string.Join(" | ", result.Errors.Select(e => e.Description));
+
+            // Send confirmation email
+            await _emailService.SendPasswordChangedConfirmationAsync(
+                to: email,
+                displayName: user.DisplayName ?? user.UserName ?? "Student"
+            );
+
+            return "Password changed successfully.";
+        }
 
         // ── Private helpers ────────────────────────────────────────────────────
 

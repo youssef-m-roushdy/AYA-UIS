@@ -6,9 +6,11 @@ export const API_ENDPOINTS = {
     REGISTER: `${API_BASE}/Authentication/Register`,
     REGISTER_STUDENT: deptId =>
       `${API_BASE}/Authentication/register-student/${deptId}/department`,
-    RESET_PASSWORD: `${API_BASE}/Authentication/reset-password`,
     REFRESH: `${API_BASE}/Authentication/refresh`, // ← ADD
     REVOKE: `${API_BASE}/Authentication/revoke`,
+    FORGOT_PASSWORD: `${API_BASE}/Authentication/forgot-password`, // ← ADD
+    RESET_PASSWORD: `${API_BASE}/Authentication/reset-password`, // ← ADD
+    CHANGE_PASSWORD: `${API_BASE}/Authentication/change-password`, // ← ADD
   },
   USER: {
     BY_ACADEMIC_CODE: code => `${API_BASE}/User/${code}/academic`,
@@ -96,6 +98,8 @@ export const API_ENDPOINTS = {
 export const ROUTES = {
   HOME: '/',
   LOGIN: '/login',
+  FORGOT_PASSWORD: '/forgot-password', // ← ADD
+  RESET_PASSWORD: '/reset-password', // ← ADD
   DASHBOARD: '/dashboard',
   ADMIN: {
     DEPARTMENTS: '/admin/departments',
@@ -121,6 +125,7 @@ export const ROUTES = {
     COURSE_UPLOADS: '/student/course/:courseId/uploads',
     PROFILE: '/student/profile',
     SCHEDULES: '/student/schedules',
+    CHANGE_PASSWORD: '/student/change-password',
   },
 };
 

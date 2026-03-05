@@ -19,6 +19,7 @@ import {
   FiLayers,
   FiChevronDown,
   FiArrowUp,
+  FiLock,
 } from 'react-icons/fi';
 import logo from '../../assets/images/logo.svg';
 import './Layout.css';
@@ -134,6 +135,12 @@ export default function Layout() {
       label: 'Profile',
       roles: ['Student'],
     },
+    {
+      to: ROUTES.STUDENT.CHANGE_PASSWORD,
+      icon: <FiLock />,
+      label: 'Change Password',
+      roles: ['Student'],
+    }, // ← ADD
   ];
 
   // Combine and filter navigation items based on user roles

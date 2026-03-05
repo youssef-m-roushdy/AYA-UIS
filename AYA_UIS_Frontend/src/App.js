@@ -25,6 +25,9 @@ import StudyYearSemesters from './pages/student/StudyYearSemesters';
 import SemesterCourses from './pages/student/SemesterCourses';
 import CourseUploads from './pages/student/CourseUploads';
 import DepartmentCourses from './pages/student/DepartmentCourses';
+import ForgotPassword from './pages/auth/ForgotPassword';
+import ResetPassword from './pages/auth/ResetPassword';
+import ChangePassword from './pages/student/ChangePassword';
 
 import './styles/globals.css';
 
@@ -46,7 +49,8 @@ function App() {
         <Routes>
           {/* Public */}
           <Route path="/login" element={<Login />} />
-
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           {/* Protected – inside Layout */}
           <Route
             path="/"
@@ -188,6 +192,14 @@ function App() {
               element={
                 <ProtectedRoute roles={['Student']}>
                   <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="student/change-password"
+              element={
+                <ProtectedRoute roles={['Student']}>
+                  <ChangePassword />
                 </ProtectedRoute>
               }
             />

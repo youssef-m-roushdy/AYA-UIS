@@ -115,7 +115,11 @@ namespace AYA_UIS
             // JWT + Auth services
             builder.Services.AddScoped<IJwtService, JwtService>();
             builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+            // Use "emailSettings" (lowercase) to match your appsettings.json key exactly
+            builder.Services.Configure<EmailSettings>(
+                builder.Configuration.GetSection("emailSettings"));
 
+            builder.Services.AddScoped<IEmailService, EmailService>();
 
 
             // MediatR for CQRS

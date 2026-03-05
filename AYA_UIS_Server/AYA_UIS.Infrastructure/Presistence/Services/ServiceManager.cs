@@ -20,11 +20,21 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
             IOptions<JwtSettings> settings,
             IUserService userService,
             IUnitOfWork unitOfWork,
-            UniversityDbContext context) // ← ADD
+            IOptions<EmailSettings> emailSettings,
+            IEmailService emailService,
+            UniversityDbContext context)
         {
             _authService = new Lazy<IAuthenticationService>(
                 () => new AuthenticationService(
-                    userManager, roleManager, jwtService, settings, unitOfWork, context)); // ← ADD
+                    userManager,
+                    roleManager,
+                    jwtService,
+                    settings,
+                    emailSettings,
+                    unitOfWork,
+                    emailService,
+                    // ← Fixed: IOptions<EmailSettings> parameter
+                    context));      // ← Fixed: UniversityDbContext parameter
 
             _roleService = new Lazy<IRoleService>(
                 () => new RoleService(roleManager, userManager));

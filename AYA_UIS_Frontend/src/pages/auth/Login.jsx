@@ -7,16 +7,16 @@ import logo from '../../assets/images/logo.svg';
 import './Login.css';
 
 // React Icons
-import { 
-  MdEmail, 
-  MdLock, 
-  MdVisibility, 
+import {
+  MdEmail,
+  MdLock,
+  MdVisibility,
   MdVisibilityOff,
   MdErrorOutline,
   MdSchool,
   MdTimeline,
   MdSchedule,
-  MdArrowForward
+  MdArrowForward,
 } from 'react-icons/md';
 import { FaUserGraduate } from 'react-icons/fa';
 import { RiDashboardLine } from 'react-icons/ri';
@@ -141,7 +141,11 @@ export default function Login() {
                 <label htmlFor="password" className="input-label">
                   Password
                 </label>
-                <button type="button" className="forgot-link">
+                <button
+                  type="button"
+                  className="forgot-link"
+                  onClick={() => navigate(ROUTES.FORGOT_PASSWORD)}
+                >
                   Forgot password?
                 </button>
               </div>
@@ -166,7 +170,11 @@ export default function Login() {
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? <MdVisibilityOff className='pass-icon' /> : <MdVisibility className='pass-icon' />}
+                  {showPassword ? (
+                    <MdVisibilityOff className="pass-icon" />
+                  ) : (
+                    <MdVisibility className="pass-icon" />
+                  )}
                 </button>
               </div>
             </div>
@@ -177,7 +185,7 @@ export default function Login() {
                 <input
                   type="checkbox"
                   checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
+                  onChange={e => setRememberMe(e.target.checked)}
                   className="checkbox-input"
                 />
                 <span className="checkbox-custom"></span>
@@ -187,22 +195,22 @@ export default function Login() {
 
             {/* Submit Button */}
             <button
-  type="submit"
-  className="submit-button"
-  disabled={isLoading}
->
-  {isLoading ? (
-    <span className="button-content">
-      <span className="spinner"></span>
-      Signing in...
-    </span>
-  ) : (
-    <span className="button-content">
-      Sign In
-      <MdArrowForward className="button-icon" />
-    </span>
-  )}
-</button>
+              type="submit"
+              className="submit-button"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <span className="button-content">
+                  <span className="spinner"></span>
+                  Signing in...
+                </span>
+              ) : (
+                <span className="button-content">
+                  Sign In
+                  <MdArrowForward className="button-icon" />
+                </span>
+              )}
+            </button>
 
             {/* Demo Credentials */}
             <div className="demo-credentials">
