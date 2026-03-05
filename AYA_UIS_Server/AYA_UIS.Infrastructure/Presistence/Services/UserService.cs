@@ -123,7 +123,7 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
             return (result, totalCount);
         }
 
-        public async Task<IEnumerable<UserDto>> GetUnGraduateStudentUsers(string userId, StudentQueries query)
+        public async Task<IEnumerable<StudentUserDto>> GetUnGraduateStudentUsers(string userId, StudentQueries query)
         {
             
             var usersQuery = _dbContext.Users
@@ -178,10 +178,10 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
 
             var users = await usersQuery.ToListAsync();
 
-            return _mapper.Map<IEnumerable<UserDto>>(users);
+            return _mapper.Map<IEnumerable<StudentUserDto>>(users);
         }
 
-        public async Task<(IEnumerable<UserDto> Data, int TotalCount)> GetUnGraduateStudentUsersWithPaginationAsync(string userId, StudentQueries query)
+        public async Task<(IEnumerable<StudentUserDto> Data, int TotalCount)> GetUnGraduateStudentUsersWithPaginationAsync(string userId, StudentQueries query)
         {
             var usersQuery = _dbContext.Users
                 .Where(u => u.Id != userId && u.Level != Levels.Graduate)
@@ -243,12 +243,12 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
             usersQuery = usersQuery.ApplyPagination(query);
 
             var users = await usersQuery.ToListAsync();
-            var result = _mapper.Map<IEnumerable<UserDto>>(users);
+            var result = _mapper.Map<IEnumerable<StudentUserDto>>(users);
 
             return (result, totalCount);
         }
 
-        public async Task<IEnumerable<UserDto>> GetAllStudentUsers(string userId, StudentQueries query)
+        public async Task<IEnumerable<StudentUserDto>> GetAllStudentUsers(string userId, StudentQueries query)
         {
             
             var usersQuery = _dbContext.Users
@@ -303,10 +303,10 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
 
             var users = await usersQuery.ToListAsync();
 
-            return _mapper.Map<IEnumerable<UserDto>>(users);
+            return _mapper.Map<IEnumerable<StudentUserDto>>(users);
         }
 
-        public async Task<(IEnumerable<UserDto> Data, int TotalCount)> GetAllStudentUsersWithPaginationAsync(string userId, StudentQueries query)
+        public async Task<(IEnumerable<StudentUserDto> Data, int TotalCount)> GetAllStudentUsersWithPaginationAsync(string userId, StudentQueries query)
         {
             var usersQuery = _dbContext.Users
                 .Where(u => u.Id != userId)
@@ -368,7 +368,7 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
             usersQuery = usersQuery.ApplyPagination(query);
 
             var users = await usersQuery.ToListAsync();
-            var result = _mapper.Map<IEnumerable<UserDto>>(users);
+            var result = _mapper.Map<IEnumerable<StudentUserDto>>(users);
 
             return (result, totalCount);
         }
@@ -417,7 +417,7 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
             }
         }
 
-        public async Task UpdateProfilePictureAsync(string userId, UpdateProfilePictureDto dto)
+        public async Task<string> UpdateProfilePictureAsync(string userId, UpdateProfilePictureDto dto)
         {
             try
             {
@@ -433,6 +433,8 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
                     var errors = result.Errors.Select(e => e.Description).ToList();
                     throw new ValidationException(errors);
                 }
+
+                return user.ProfilePicture;
             }
             catch (Exception ex)
             {

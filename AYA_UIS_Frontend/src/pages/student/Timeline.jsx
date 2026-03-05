@@ -65,7 +65,9 @@ export default function Timeline() {
             <FiBook />
           </div>
           <div className="stat-info">
-            <h3>{timeline.departmentName || '—'}</h3>
+            <h3 style={{ whiteSpace: 'nowrap' }}>
+              {timeline.department || '—'}
+            </h3>
             <p>Department</p>
           </div>
         </div>

@@ -110,14 +110,22 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
             string resetLink)
         {
             var content = $"""
-                <!-- Icon -->
-                <div style="text-align:center;margin-bottom:28px;">
-                  <div style="display:inline-flex;align-items:center;justify-content:center;
-                              width:64px;height:64px;border-radius:50%;
-                              background:linear-gradient(135deg,#667eea,#764ba2);">
-                    <span style="font-size:28px;">🔐</span>
-                  </div>
-                </div>
+                <!-- Icon: table-based circle for universal email client support -->
+                <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+                  <tr>
+                    <td align="center">
+                      <table cellpadding="0" cellspacing="0">
+                        <tr>
+                          <td width="72" height="72" align="center" valign="middle"
+                              style="width:72px;height:72px;border-radius:50%;
+                                     background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);">
+                            <span style="font-size:32px;line-height:72px;display:block;">🔐</span>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
 
                 <!-- Title -->
                 <h1 style="color:#1e293b;font-size:1.5rem;font-weight:700;
@@ -187,14 +195,22 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
             var changedAt = DateTime.UtcNow.ToString("MMMM dd, yyyy 'at' HH:mm 'UTC'");
 
             var content = $"""
-                <!-- Icon -->
-                <div style="text-align:center;margin-bottom:28px;">
-                  <div style="display:inline-flex;align-items:center;justify-content:center;
-                              width:64px;height:64px;border-radius:50%;
-                              background:linear-gradient(135deg,#10b981,#059669);">
-                    <span style="font-size:28px;">✅</span>
-                  </div>
-                </div>
+                <!-- Icon: table-based circle for universal email client support -->
+                <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+                  <tr>
+                    <td align="center">
+                      <table cellpadding="0" cellspacing="0">
+                        <tr>
+                          <td width="72" height="72" align="center" valign="middle"
+                              style="width:72px;height:72px;border-radius:50%;
+                                     background:linear-gradient(135deg,#10b981 0%,#059669 100%);">
+                            <span style="font-size:32px;line-height:72px;display:block;">✅</span>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
 
                 <!-- Title -->
                 <h1 style="color:#1e293b;font-size:1.5rem;font-weight:700;

@@ -7,6 +7,10 @@ import {
   FiUser,
   FiSearch,
   FiGrid,
+  FiBriefcase,
+  FiHash,
+  FiUserPlus,
+  FiUserCheck,
 } from 'react-icons/fi';
 import userService from '../../services/userService';
 import { useAuth } from '../../contexts/AuthContext';
@@ -22,20 +26,20 @@ export default function Users() {
   const [showFilters, setShowFilters] = useState(false);
   const [departments, setDepartments] = useState([]);
 
-  // Filter states
+  // Filter states - Updated to match API query parameters
   const [filters, setFilters] = useState({
-    academicCode: '',
-    gender: '',
-    level: '',
-    departmentId: '',
-    role: '',
-    searchTerm: '',
+    Academic_Code: '',
+    Gender: '',
+    Level: '',
+    DepartmentId: '',
+    Role: '',
+    Name: '', // Changed from searchTerm to Name to match API
   });
   const [filterApplied, setFilterApplied] = useState(false);
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 10; // Fixed page size
+  const pageSize = 12; // Increased for card layout
   const [sortBy, setSortBy] = useState(null);
   const [sortDirection, setSortDirection] = useState('Ascending');
   const [pagination, setPagination] = useState(null);
@@ -107,15 +111,15 @@ export default function Users() {
     try {
       const filterParams = {};
 
-      // Add all filters
-      if (filters.role) filterParams.Role = filters.role;
-      if (filters.level) filterParams.Level = filters.level;
-      if (filters.departmentId)
-        filterParams.DepartmentId = parseInt(filters.departmentId);
-      if (filters.academicCode)
-        filterParams.Academic_Code = filters.academicCode;
-      if (filters.gender) filterParams.Gender = filters.gender;
-      if (filters.searchTerm) filterParams.SearchTerm = filters.searchTerm;
+      // Add all filters - matching API query parameters exactly
+      if (filters.Role) filterParams.Role = filters.Role;
+      if (filters.Level) filterParams.Level = filters.Level;
+      if (filters.DepartmentId)
+        filterParams.DepartmentId = parseInt(filters.DepartmentId);
+      if (filters.Academic_Code)
+        filterParams.Academic_Code = filters.Academic_Code;
+      if (filters.Gender) filterParams.Gender = filters.Gender;
+      if (filters.Name) filterParams.Name = filters.Name; // Using Name for search
 
       const response = await userService.getAllPaginated(
         filterParams,
@@ -136,7 +140,7 @@ export default function Users() {
       } else {
         usersData = response || [];
       }
-      console.log('Loaded users:', usersData);
+
       setUsers(usersData);
       if (paginationData) {
         setPagination(paginationData);
@@ -161,12 +165,12 @@ export default function Users() {
 
   const clearFilters = () => {
     setFilters({
-      academicCode: '',
-      gender: '',
-      level: '',
-      departmentId: '',
-      role: '',
-      searchTerm: '',
+      Academic_Code: '',
+      Gender: '',
+      Level: '',
+      DepartmentId: '',
+      Role: '',
+      Name: '',
     });
     setCurrentPage(1);
   };
@@ -189,14 +193,33 @@ export default function Users() {
     return 'badge-neutral';
   };
 
-  const getGenderColor = gender => {
-    return gender === 'Male' ? 'badge-info' : 'badge-pink';
+  const getGenderIcon = gender => {
+    return gender === 'Male' ? '♂️' : '♀️';
+  };
+
+  const getInitials = name => {
+    if (!name) return '?';
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
+
+  const getProfileColor = (gender, name) => {
+    if (gender === 'Male') return '#3b82f6'; // Blue for male
+    if (gender === 'Female') return '#ec4899'; // Pink for female
+    // Generate consistent color based on name
+    const hue = name ? (name.length * 50) % 360 : 200;
+    return `hsl(${hue}, 70%, 60%)`;
   };
 
   if (!hasRole('Admin')) {
     return (
       <div className="page-container">
-        <div className="card empty-state">
+        <div className="empty-state-card">
+          <FiUsers size={48} />
           <h3>Access Denied</h3>
           <p>You don't have permission to view this page.</p>
         </div>
@@ -209,7 +232,7 @@ export default function Users() {
       {/* Header */}
       <div className="page-header">
         <div>
-          <h1 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <h1>
             <FiUsers />
             System Users
           </h1>
@@ -217,28 +240,20 @@ export default function Users() {
         </div>
       </div>
 
-      {/* Actions Bar - Same as Students component */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '16px',
-          marginBottom: '24px',
-        }}
-      >
-        <div style={{ display: 'flex', gap: 8 }}>
+      {/* Actions Bar */}
+      <div className="actions-bar">
+        <div className="actions-left">
           <button
             className={`btn ${filterApplied ? 'btn-primary' : 'btn-ghost'}`}
             onClick={() => setShowFilters(!showFilters)}
           >
             <FiFilter />
             Filters
+            {filterApplied && <span className="filter-dot"></span>}
           </button>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div className="actions-right">
           <SortMenu
             sortBy={sortBy}
             sortDirection={sortDirection}
@@ -251,46 +266,22 @@ export default function Users() {
 
       {/* Filters Section */}
       {showFilters && (
-        <div
-          className="card"
-          style={{ marginBottom: 24, animation: 'slideDown 0.3s ease' }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: 18,
-            }}
-          >
-            <h3 style={{ margin: 0, fontSize: '0.9375rem', fontWeight: 600 }}>
-              Filter Users
-            </h3>
+        <div className="filters-card">
+          <div className="filters-header">
+            <h3>Filter Users</h3>
             {filterApplied && (
-              <button
-                className="btn btn-ghost btn-sm"
-                onClick={clearFilters}
-                style={{ display: 'flex', alignItems: 'center', gap: 4 }}
-              >
+              <button className="btn btn-ghost btn-sm" onClick={clearFilters}>
                 <FiX size={13} /> Clear All
               </button>
             )}
           </div>
 
-          {/* FilterSelect row */}
-          <div
-            style={{
-              display: 'flex',
-              gap: 12,
-              flexWrap: 'wrap',
-              alignItems: 'flex-end',
-            }}
-          >
+          <div className="filters-grid">
             {/* Role */}
             <FilterSelect
               label="Role"
-              value={filters.role}
-              onChange={val => handleFilterChange('role', val)}
+              value={filters.Role}
+              onChange={val => handleFilterChange('Role', val)}
               options={roleFilterOptions}
               placeholder="All Roles"
               icon={<FiUser size={13} />}
@@ -299,340 +290,630 @@ export default function Users() {
             {/* Gender */}
             <FilterSelect
               label="Gender"
-              value={filters.gender}
-              onChange={val => handleFilterChange('gender', val)}
+              value={filters.Gender}
+              onChange={val => handleFilterChange('Gender', val)}
               options={genderFilterOptions}
               placeholder="All Genders"
               icon={<FiUser size={13} />}
             />
 
+            {/* Level */}
+            <FilterSelect
+              label="Level"
+              value={filters.Level}
+              onChange={val => handleFilterChange('Level', val)}
+              options={levelFilterOptions}
+              placeholder="All Levels"
+              icon={<FiGrid size={13} />}
+            />
+
             {/* Department */}
             <FilterSelect
               label="Department"
-              value={filters.departmentId}
-              onChange={val => handleFilterChange('departmentId', val)}
+              value={filters.DepartmentId}
+              onChange={val => handleFilterChange('DepartmentId', val)}
               options={departments.map(d => ({
                 value: String(d.id),
                 label: d.name,
                 dotColor: 'neutral',
               }))}
               placeholder="All Departments"
-              icon={<FiGrid size={13} />}
+              icon={<FiBriefcase size={13} />}
             />
 
-            {/* Academic Code — plain text input */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.07em',
-                  color: '#94a3b8',
-                }}
-              >
-                Academic Code
-              </span>
+            {/* Academic Code */}
+            <div className="filter-input-group">
+              <span className="filter-label">Academic Code</span>
               <input
                 type="text"
                 placeholder="Enter code..."
-                value={filters.academicCode}
+                value={filters.Academic_Code}
                 onChange={e =>
-                  handleFilterChange('academicCode', e.target.value)
+                  handleFilterChange('Academic_Code', e.target.value)
                 }
-                style={{
-                  padding: '0 12px',
-                  height: '38px',
-                  border: '1.5px solid #e2e8f0',
-                  borderRadius: '10px',
-                  fontSize: '13.5px',
-                  fontFamily: "'DM Sans', sans-serif",
-                  outline: 'none',
-                  transition: 'border-color 0.15s, box-shadow 0.15s',
-                  minWidth: '160px',
-                }}
-                onFocus={e => {
-                  e.target.style.borderColor = '#6366f1';
-                  e.target.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.12)';
-                }}
-                onBlur={e => {
-                  e.target.style.borderColor = '#e2e8f0';
-                  e.target.style.boxShadow = 'none';
-                }}
+                className="filter-input"
               />
             </div>
 
-            {/* Search Term */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.07em',
-                  color: '#94a3b8',
-                }}
-              >
-                Search
-              </span>
-              <div style={{ position: 'relative' }}>
-                <FiSearch
-                  style={{
-                    position: 'absolute',
-                    left: 10,
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    color: '#cbd5e1',
-                    pointerEvents: 'none',
-                  }}
-                  size={13}
-                />
+            {/* Name Search */}
+            <div className="filter-input-group">
+              <span className="filter-label">Search by Name</span>
+              <div className="search-input-wrapper">
+                <FiSearch className="search-icon" size={13} />
                 <input
                   type="text"
-                  placeholder="Search by name..."
-                  value={filters.searchTerm}
-                  onChange={e =>
-                    handleFilterChange('searchTerm', e.target.value)
-                  }
-                  style={{
-                    padding: '0 12px 0 32px',
-                    height: '38px',
-                    border: '1.5px solid #e2e8f0',
-                    borderRadius: '10px',
-                    fontSize: '13.5px',
-                    fontFamily: "'DM Sans', sans-serif",
-                    outline: 'none',
-                    transition: 'border-color 0.15s, box-shadow 0.15s',
-                    minWidth: '160px',
-                  }}
-                  onFocus={e => {
-                    e.target.style.borderColor = '#6366f1';
-                    e.target.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.12)';
-                  }}
-                  onBlur={e => {
-                    e.target.style.borderColor = '#e2e8f0';
-                    e.target.style.boxShadow = 'none';
-                  }}
+                  placeholder="Enter name..."
+                  value={filters.Name}
+                  onChange={e => handleFilterChange('Name', e.target.value)}
+                  className="filter-input with-icon"
                 />
               </div>
             </div>
-
-            {/* Active filter chips */}
-            {filterApplied && (
-              <div
-                style={{
-                  marginTop: 16,
-                  paddingTop: 14,
-                  borderTop: '1px solid #f1f5f9',
-                  display: 'flex',
-                  gap: 6,
-                  flexWrap: 'wrap',
-                  alignItems: 'center',
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: '0.8125rem',
-                    color: '#94a3b8',
-                    fontWeight: 500,
-                  }}
-                >
-                  Active:
-                </span>
-                {filters.role && (
-                  <span className="badge badge-info">Role: {filters.role}</span>
-                )}
-                {filters.gender && (
-                  <span className="badge badge-info">
-                    Gender: {filters.gender}
-                  </span>
-                )}
-                {filters.departmentId && (
-                  <span className="badge badge-info">
-                    Department:{' '}
-                    {
-                      departments.find(
-                        d => d.id === parseInt(filters.departmentId)
-                      )?.name
-                    }
-                  </span>
-                )}
-                {filters.academicCode && (
-                  <span className="badge badge-info">
-                    Code: {filters.academicCode}
-                  </span>
-                )}
-              </div>
-            )}
           </div>
+
+          {/* Active filter chips */}
+          {filterApplied && (
+            <div className="active-filters">
+              <span className="active-filters-label">Active:</span>
+              {filters.Role && (
+                <span className="badge badge-info">Role: {filters.Role}</span>
+              )}
+              {filters.Gender && (
+                <span className="badge badge-info">
+                  Gender: {filters.Gender}
+                </span>
+              )}
+              {filters.Level && (
+                <span className="badge badge-info">
+                  Level:{' '}
+                  {levelOptions.find(l => l.value === filters.Level)?.label}
+                </span>
+              )}
+              {filters.DepartmentId && (
+                <span className="badge badge-info">
+                  Dept:{' '}
+                  {
+                    departments.find(
+                      d => d.id === parseInt(filters.DepartmentId)
+                    )?.name
+                  }
+                </span>
+              )}
+              {filters.Academic_Code && (
+                <span className="badge badge-info">
+                  Code: {filters.Academic_Code}
+                </span>
+              )}
+              {filters.Name && (
+                <span className="badge badge-info">Name: {filters.Name}</span>
+              )}
+            </div>
+          )}
         </div>
       )}
 
       {/* Results Summary */}
-      <div
-        style={{
-          marginBottom: 16,
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          gap: '12px',
-          flexWrap: 'wrap',
-        }}
-      >
-        <span className="badge badge-info" style={{ fontSize: '0.875rem' }}>
+      <div className="results-summary">
+        <span className="results-count">
           {pagination?.totalCount || users.length} user
           {(pagination?.totalCount || users.length) !== 1 ? 's' : ''} found
         </span>
-        {loading && (
-          <span style={{ color: 'var(--text-light)' }}>Updating...</span>
-        )}
+        {loading && <span className="loading-indicator">Updating...</span>}
       </div>
 
-      {/* Users Table - Same as Students component */}
-      <div className="card">
-        <div className="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Academic Code</th>
-                <th>Roles</th>
-                <th>Department</th>
-                <th>Gender</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.length === 0 && !loading ? (
-                <tr>
-                  <td colSpan={9} className="empty-state">
-                    <div style={{ padding: '40px 20px', textAlign: 'center' }}>
-                      <FiUsers
-                        size={40}
-                        style={{ opacity: 0.3, marginBottom: 16 }}
-                      />
-                      <h3>No users found</h3>
-                      <p style={{ color: 'var(--text-light)' }}>
-                        {filterApplied
-                          ? 'Try adjusting your filters'
-                          : 'No users available'}
-                      </p>
-                      {filterApplied && (
-                        <button
-                          className="btn btn-ghost btn-sm"
-                          onClick={clearFilters}
-                          style={{ marginTop: 8 }}
-                        >
-                          Clear Filters
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                users.map(user => (
-                  <tr key={user.id}>
-                    <td>
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 8,
-                        }}
-                      >
-                        <div
-                          style={{
-                            width: 32,
-                            height: 32,
-                            borderRadius: '50%',
-                            backgroundColor: '#e2e8f0',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '0.75rem',
-                            fontWeight: 'bold',
-                            color: '#4a5568',
-                          }}
-                        >
-                          {user.displayName?.charAt(0).toUpperCase() || (
-                            <FiUser size={14} />
-                          )}
-                        </div>
-                        <strong>{user.displayName}</strong>
-                      </div>
-                    </td>
-                    <td style={{ fontSize: '0.875rem' }}>
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 4,
-                        }}
-                      >
-                        <FiMail
-                          size={14}
-                          style={{ color: 'var(--text-light)' }}
-                        />
-                        {user.email}
-                      </div>
-                    </td>
-                    <td>
-                      <code style={{ fontSize: '0.875rem' }}>
-                        {user.academicCode || '—'}
-                      </code>
-                    </td>
-                    <td>
-                      {user.roles && user.roles.length > 0 ? (
-                        <span className={`badge ${getRoleColor(user.roles)}`}>
-                          {user.roles[0]}
-                        </span>
-                      ) : (
-                        <span className="badge badge-neutral">No Role</span>
-                      )}
-                    </td>
-                    <td>
-                      {user.department ? (
-                        <span className="badge badge-info">
-                          {user.department}
-                        </span>
-                      ) : (
-                        <span className="badge badge-neutral">—</span>
-                      )}
-                    </td>
-                    <td>
-                      {user.gender ? (
-                        <span
-                          className={`badge ${getGenderColor(user.gender)}`}
-                        >
-                          {user.gender}
-                        </span>
-                      ) : (
-                        <span className="badge badge-neutral">—</span>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+      {/* Facebook-style Cards Grid */}
+      {users.length === 0 && !loading ? (
+        <div className="empty-state-card">
+          <FiUsers size={48} />
+          <h3>No users found</h3>
+          <p>
+            {filterApplied
+              ? 'Try adjusting your filters'
+              : 'No users available'}
+          </p>
+          {filterApplied && (
+            <button className="btn btn-ghost" onClick={clearFilters}>
+              Clear Filters
+            </button>
+          )}
         </div>
+      ) : (
+        <div className="users-grid">
+          {users.map(user => (
+            <div key={user.id} className="user-card">
+              <div className="card-header">
+                <div
+                  className="profile-picture"
+                  style={{
+                    backgroundColor: getProfileColor(
+                      user.gender,
+                      user.displayName
+                    ),
+                  }}
+                >
+                  {user.profilePicture ? (
+                    <img src={user.profilePicture} alt={user.displayName} />
+                  ) : (
+                    <span className="initials">
+                      {getInitials(user.displayName)}
+                    </span>
+                  )}
+                </div>
 
-        {/* Pagination */}
-        {users.length > 0 && (
-          <div style={{ marginTop: 16 }}>
-            <Pagination
-              currentPage={pagination?.currentPage || currentPage}
-              totalPages={pagination?.totalPages || 1}
-              pageSize={pageSize}
-              totalCount={pagination?.totalCount || users.length}
-              onPageChange={handlePageChange}
-              isLoading={loading}
-            />
-          </div>
-        )}
-      </div>
+                {/* Role Badge */}
+                {user.roles && user.roles.length > 0 && (
+                  <span className={`role-badge ${getRoleColor(user.roles)}`}>
+                    {user.roles[0]}
+                  </span>
+                )}
+              </div>
+
+              <div className="card-body">
+                <h3 className="user-name">{user.displayName || 'N/A'}</h3>
+
+                <div className="user-info">
+                  <div className="info-item">
+                    <FiMail className="info-icon" />
+                    <span className="info-text">{user.email || 'N/A'}</span>
+                  </div>
+
+                  <div className="info-item">
+                    <FiHash className="info-icon" />
+                    <span className="info-text">
+                      <span className="info-label">Code:</span>{' '}
+                      {user.academicCode || 'N/A'}
+                    </span>
+                  </div>
+
+                  <div className="info-item">
+                    <FiBriefcase className="info-icon" />
+                    <span className="info-text">
+                      <span className="info-label">Dept:</span>{' '}
+                      {user.department || 'N/A'}
+                    </span>
+                  </div>
+
+                  {user.gender && (
+                    <div className="info-item">
+                      <FiUser className="info-icon" />
+                      <span className="info-text">
+                        <span className="info-label">Gender:</span>{' '}
+                        {user.gender} {getGenderIcon(user.gender)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Facebook-style action buttons */}
+              <div className="card-actions">
+                <button className="action-btn primary">
+                  <FiUserPlus />
+                  <span>View Profile</span>
+                </button>
+                <button className="action-btn secondary">
+                  <FiMail />
+                  <span>Message</span>
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {users.length > 0 && (
+        <div className="pagination-container">
+          <Pagination
+            currentPage={pagination?.currentPage || currentPage}
+            totalPages={pagination?.totalPages || 1}
+            pageSize={pageSize}
+            totalCount={pagination?.totalCount || users.length}
+            onPageChange={handlePageChange}
+            isLoading={loading}
+          />
+        </div>
+      )}
 
       <style jsx>{`
+        .page-container {
+          padding: 24px;
+          max-width: 1400px;
+          margin: 0 auto;
+        }
+
+        .page-header {
+          margin-bottom: 24px;
+        }
+
+        .page-header h1 {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          font-size: 28px;
+          font-weight: 600;
+          color: #1e293b;
+          margin: 0 0 8px 0;
+        }
+
+        .page-header p {
+          color: #64748b;
+          margin: 0;
+          font-size: 15px;
+        }
+
+        .actions-bar {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 16px;
+          margin-bottom: 24px;
+        }
+
+        .actions-left {
+          display: flex;
+          gap: 8px;
+        }
+
+        .btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 16px;
+          border-radius: 8px;
+          font-size: 14px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s;
+          border: none;
+          background: transparent;
+        }
+
+        .btn-ghost {
+          background: #f1f5f9;
+          color: #334155;
+        }
+
+        .btn-ghost:hover {
+          background: #e2e8f0;
+        }
+
+        .btn-primary {
+          background: #2563eb;
+          color: white;
+        }
+
+        .btn-primary:hover {
+          background: #1d4ed8;
+        }
+
+        .btn-sm {
+          padding: 6px 12px;
+          font-size: 13px;
+        }
+
+        .filter-dot {
+          width: 6px;
+          height: 6px;
+          background: #2563eb;
+          border-radius: 50%;
+          margin-left: 4px;
+        }
+
+        .filters-card {
+          background: white;
+          border-radius: 16px;
+          padding: 20px;
+          margin-bottom: 24px;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          border: 1px solid #eef2f6;
+          animation: slideDown 0.3s ease;
+        }
+
+        .filters-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 20px;
+        }
+
+        .filters-header h3 {
+          margin: 0;
+          font-size: 16px;
+          font-weight: 600;
+          color: #1e293b;
+        }
+
+        .filters-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+          gap: 16px;
+        }
+
+        .filter-input-group {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+
+        .filter-label {
+          font-size: 11px;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.07em;
+          color: #94a3b8;
+        }
+
+        .filter-input {
+          height: 40px;
+          padding: 0 12px;
+          border: 1.5px solid #e2e8f0;
+          border-radius: 10px;
+          font-size: 14px;
+          font-family: inherit;
+          outline: none;
+          transition: all 0.15s;
+          width: 100%;
+        }
+
+        .filter-input:focus {
+          border-color: #2563eb;
+          box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .filter-input.with-icon {
+          padding-left: 32px;
+        }
+
+        .search-input-wrapper {
+          position: relative;
+        }
+
+        .search-icon {
+          position: absolute;
+          left: 10px;
+          top: 50%;
+          transform: translateY(-50%);
+          color: #94a3b8;
+          pointer-events: none;
+        }
+
+        .active-filters {
+          margin-top: 20px;
+          padding-top: 16px;
+          border-top: 1px solid #eef2f6;
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+          align-items: center;
+        }
+
+        .active-filters-label {
+          font-size: 13px;
+          color: #64748b;
+          font-weight: 500;
+        }
+
+        .results-summary {
+          margin-bottom: 20px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .results-count {
+          background: #f1f5f9;
+          padding: 6px 12px;
+          border-radius: 20px;
+          font-size: 14px;
+          color: #334155;
+          font-weight: 500;
+        }
+
+        .loading-indicator {
+          color: #64748b;
+          font-size: 14px;
+        }
+
+        .users-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+          gap: 20px;
+          margin-bottom: 24px;
+        }
+
+        .user-card {
+          background: white;
+          border-radius: 16px;
+          overflow: hidden;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          border: 1px solid #eef2f6;
+          transition: all 0.2s;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .user-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+          border-color: #d1d9e6;
+        }
+
+        .card-header {
+          position: relative;
+          padding: 20px 20px 0 20px;
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+        }
+
+        .profile-picture {
+          width: 80px;
+          height: 80px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-weight: 600;
+          font-size: 24px;
+          border: 3px solid white;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .profile-picture img {
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          object-fit: cover;
+        }
+
+        .initials {
+          font-size: 28px;
+          font-weight: 600;
+        }
+
+        .role-badge {
+          padding: 6px 12px;
+          border-radius: 20px;
+          font-size: 12px;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        .badge-danger {
+          background: #fee2e2;
+          color: #991b1b;
+        }
+
+        .badge-warning {
+          background: #fef3c7;
+          color: #92400e;
+        }
+
+        .badge-success {
+          background: #d1fae5;
+          color: #065f46;
+        }
+
+        .badge-info {
+          background: #dbeafe;
+          color: #1e40af;
+        }
+
+        .badge-neutral {
+          background: #f1f5f9;
+          color: #475569;
+        }
+
+        .card-body {
+          padding: 16px 20px;
+          flex: 1;
+        }
+
+        .user-name {
+          margin: 0 0 16px 0;
+          font-size: 18px;
+          font-weight: 600;
+          color: #1e293b;
+        }
+
+        .user-info {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .info-item {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          font-size: 14px;
+          color: #475569;
+        }
+
+        .info-icon {
+          color: #94a3b8;
+          flex-shrink: 0;
+        }
+
+        .info-text {
+          word-break: break-word;
+          line-height: 1.4;
+        }
+
+        .info-label {
+          color: #94a3b8;
+          font-weight: 500;
+          margin-right: 4px;
+        }
+
+        .card-actions {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1px;
+          background: #eef2f6;
+          border-top: 1px solid #eef2f6;
+        }
+
+        .action-btn {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          padding: 12px;
+          background: white;
+          border: none;
+          font-size: 14px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s;
+          color: #475569;
+        }
+
+        .action-btn:hover {
+          background: #f8fafc;
+        }
+
+        .action-btn.primary {
+          color: #2563eb;
+        }
+
+        .action-btn.primary:hover {
+          background: #eff6ff;
+        }
+
+        .action-btn.secondary:hover {
+          background: #f1f5f9;
+        }
+
+        .empty-state-card {
+          background: white;
+          border-radius: 16px;
+          padding: 60px 20px;
+          text-align: center;
+          border: 1px solid #eef2f6;
+          color: #94a3b8;
+        }
+
+        .empty-state-card h3 {
+          margin: 16px 0 8px 0;
+          font-size: 18px;
+          font-weight: 600;
+          color: #334155;
+        }
+
+        .empty-state-card p {
+          margin: 0 0 20px 0;
+          color: #64748b;
+        }
+
+        .pagination-container {
+          margin-top: 24px;
+        }
+
         @keyframes slideDown {
           from {
             opacity: 0;
@@ -644,6 +925,7 @@ export default function Users() {
           }
         }
 
+        /* Badge color variations */
         .badge-pink {
           background-color: #fce7f3;
           color: #9d174d;
@@ -657,31 +939,6 @@ export default function Users() {
         .badge-primary {
           background-color: #dbeafe;
           color: #1e40af;
-        }
-
-        .badge-danger {
-          background-color: #fee2e2;
-          color: #991b1b;
-        }
-
-        .badge-warning {
-          background-color: #fef3c7;
-          color: #92400e;
-        }
-
-        .badge-success {
-          background-color: #d1fae5;
-          color: #065f46;
-        }
-
-        .badge-info {
-          background-color: #dbeafe;
-          color: #1e40af;
-        }
-
-        .badge-neutral {
-          background-color: #f1f5f9;
-          color: #475569;
         }
       `}</style>
     </div>

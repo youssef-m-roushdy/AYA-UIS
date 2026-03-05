@@ -152,6 +152,10 @@
   margin-top: 8px;
   position: relative;
   overflow: hidden;
+  /* ← Fix: make button itself a flex container to center content */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .auth-submit-btn::before {
@@ -169,6 +173,35 @@
   box-shadow: 0 8px 20px rgba(30, 60, 114, 0.35);
 }
 .auth-submit-btn:disabled { opacity: 0.65; cursor: not-allowed; }
+
+/* ── Button content (shared with Login) ──────────────────────────── */
+.auth-submit-btn .button-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  /* Prevent the content from ever overflowing or shifting the button height */
+  line-height: 1;
+}
+
+/* ── Spinner (scoped so it doesn't clash with Login's spinner) ────── */
+.auth-submit-btn .spinner {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  max-width: 18px;
+  flex-shrink: 0;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: auth-spin 0.6s linear infinite;
+  /* inline-flex keeps it from adding extra baseline space */
+  display: inline-flex;
+}
+
+@keyframes auth-spin {
+  to { transform: rotate(360deg); }
+}
 
 /* ── Back link ────────────────────────────────────────────────────── */
 .auth-back-link {

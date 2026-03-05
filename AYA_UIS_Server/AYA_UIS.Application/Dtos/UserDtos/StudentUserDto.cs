@@ -6,8 +6,9 @@ using AYA_UIS.Domain.Enums;
 
 namespace AYA_UIS.Application.Dtos.UserDtos
 {
-    public class UserDto
+    public class StudentUserDto
     {
+        // User
         public string Id { get; set; } = string.Empty;
         public string DisplayName { get; set; } = string.Empty;
         public string ProfilePicture { get; set; } = string.Empty;
@@ -15,8 +16,15 @@ namespace AYA_UIS.Application.Dtos.UserDtos
         public string UserName { get; set; } = string.Empty;
         public string PhoneNumber { get; set; } = string.Empty;
         public string AcademicCode { get; set; } = string.Empty;
-        public string Department { get; set; }
         public Gender Gender { get; set; }
         public List<string> Roles { get; set; }
+
+        // Student
+        public string Department { get; set; }
+        public Levels? Level { get; set; }
+        public int? TotalCredits { get; set; }
+        public int? AllowedCredits { get; set; }
+        public decimal? TotalGPA { get; set; }
+        public string? Specialization { get; set; }
     }
 }

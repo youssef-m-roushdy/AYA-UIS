@@ -39,8 +39,8 @@ namespace AYA_UIS.Infrastructure.Presentation.Controllers
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
             
-            await _serviceManager.UserService.UpdateProfilePictureAsync(userId, updateProfilePictureDto);
-            return NoContent();
+             var profilePictureUrl = await _serviceManager.UserService.UpdateProfilePictureAsync(userId, updateProfilePictureDto);
+            return Ok(new { ProfilePictureUrl = profilePictureUrl });
         }
 
         [HttpPatch("update-student-specialization")]
@@ -100,7 +100,7 @@ namespace AYA_UIS.Infrastructure.Presentation.Controllers
                 return Unauthorized();
 
             var (users, totalCount) = await _serviceManager.UserService.GetAllStudentUsersWithPaginationAsync(userId, queries);
-            return Ok(PagedResponse<UserDto>.SuccessResponse(users, queries.PageNumber, queries.PageSize, totalCount));
+            return Ok(PagedResponse<StudentUserDto>.SuccessResponse(users, queries.PageNumber, queries.PageSize, totalCount));
         }
 
         [Authorize(Roles = "Admin")]
@@ -124,7 +124,7 @@ namespace AYA_UIS.Infrastructure.Presentation.Controllers
                 return Unauthorized();
 
             var (users, totalCount) = await _serviceManager.UserService.GetUnGraduateStudentUsersWithPaginationAsync(userId, queries);
-            return Ok(PagedResponse<UserDto>.SuccessResponse(users, queries.PageNumber, queries.PageSize, totalCount));
+            return Ok(PagedResponse<StudentUserDto>.SuccessResponse(users, queries.PageNumber, queries.PageSize, totalCount));
         }
 
     }

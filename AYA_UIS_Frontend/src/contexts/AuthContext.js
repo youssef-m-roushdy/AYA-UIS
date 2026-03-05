@@ -3,7 +3,6 @@ import React, {
   useContext,
   useReducer,
   useCallback,
-  useEffect,
   useMemo,
 } from 'react';
 import authService from '../services/authService';
@@ -29,6 +28,12 @@ function authReducer(state, action) {
         isAuthenticated: true,
         status: STATUS.SUCCESS,
         error: null,
+      };
+    case 'UPDATE_USER':
+      // Merge only the changed fields into the existing user object
+      return {
+        ...state,
+        user: { ...state.user, ...action.payload },
       };
     case 'LOGOUT':
       return {
@@ -73,64 +78,57 @@ export function AuthProvider({ children }) {
 
   const clearError = useCallback(() => dispatch({ type: 'CLEAR_ERROR' }), []);
 
+  /**
+   * updateUser — patch specific fields into the user state immediately.
+   * Usage: updateUser({ profilePicture: newUrl })
+   * This avoids a full re-fetch; the component passes only what changed.
+   */
+  const updateUser = useCallback((fields) => {
+    dispatch({ type: 'UPDATE_USER', payload: fields });
+  }, []);
+
   // Helper functions to check user roles
   const hasRole = useCallback(
-    role => {
-      return (
-        Array.isArray(state.user?.roles) && state.user.roles.includes(role)
-      );
-    },
+    role => Array.isArray(state.user?.roles) && state.user.roles.includes(role),
     [state.user]
   );
 
   const hasAnyRole = useCallback(
-    roles => {
-      return (
-        Array.isArray(state.user?.roles) &&
-        roles.some(role => state.user.roles.includes(role))
-      );
-    },
+    roles =>
+      Array.isArray(state.user?.roles) &&
+      roles.some(role => state.user.roles.includes(role)),
     [state.user]
   );
 
   const hasAllRoles = useCallback(
-    roles => {
-      return (
-        Array.isArray(state.user?.roles) &&
-        roles.every(role => state.user.roles.includes(role))
-      );
-    },
+    roles =>
+      Array.isArray(state.user?.roles) &&
+      roles.every(role => state.user.roles.includes(role)),
     [state.user]
   );
 
   // Computed properties for common role checks
   const roleChecks = useMemo(
     () => ({
-      isAdmin: hasRole(USER_ROLES.ADMIN),
-      isStudent: hasRole(USER_ROLES.STUDENT),
+      isAdmin:      hasRole(USER_ROLES.ADMIN),
+      isStudent:    hasRole(USER_ROLES.STUDENT),
       isInstructor: hasRole(USER_ROLES.INSTRUCTOR),
       isSuperAdmin: hasRole(USER_ROLES.SUPER_ADMIN),
-      // Add more role checks as needed
     }),
     [hasRole]
   );
 
-  // Get all roles
   const roles = useMemo(() => state.user?.roles || [], [state.user]);
 
-  // Check if user has specific permissions based on roles
   const can = useCallback(
     permission => {
-      // Define your permissions mapping
       const permissions = {
-        'create-course': [USER_ROLES.ADMIN, USER_ROLES.INSTRUCTOR],
-        'delete-course': [USER_ROLES.ADMIN],
-        'enroll-course': [USER_ROLES.STUDENT],
+        'create-course':  [USER_ROLES.ADMIN, USER_ROLES.INSTRUCTOR],
+        'delete-course':  [USER_ROLES.ADMIN],
+        'enroll-course':  [USER_ROLES.STUDENT],
         'grade-students': [USER_ROLES.INSTRUCTOR, USER_ROLES.ADMIN],
-        'view-reports': [USER_ROLES.ADMIN, USER_ROLES.INSTRUCTOR],
-        // Add more permissions as needed
+        'view-reports':   [USER_ROLES.ADMIN, USER_ROLES.INSTRUCTOR],
       };
-
       const requiredRoles = permissions[permission];
       return requiredRoles ? hasAnyRole(requiredRoles) : false;
     },
@@ -148,6 +146,7 @@ export function AuthProvider({ children }) {
         login,
         logout,
         clearError,
+        updateUser,
         // Role checking functions
         hasRole,
         hasAnyRole,
@@ -157,7 +156,6 @@ export function AuthProvider({ children }) {
         ...roleChecks,
         // All roles
         roles,
-        // Helper to get primary role (first role)
         primaryRole: roles[0],
       }}
     >

@@ -10,6 +10,13 @@ import {
   FiAward,
   FiDollarSign,
   FiGrid,
+  FiBriefcase,
+  FiHash,
+  FiPhone,
+  FiUserPlus,
+  FiMail as FiMailIcon,
+  FiStar,
+  FiTrendingUp,
 } from 'react-icons/fi';
 import userService from '../../services/userService';
 import { useAuth } from '../../contexts/AuthContext';
@@ -18,9 +25,9 @@ import Pagination from '../../components/common/Pagination';
 import SortMenu from '../../components/common/SortMenu';
 import FilterSelect from '../../components/common/FilterSelect';
 
-export default function Users() {
+export default function Students() {
   const { hasRole } = useAuth();
-  const [users, setUsers] = useState([]);
+  const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
   const [departments, setDepartments] = useState([]);
@@ -42,7 +49,7 @@ export default function Users() {
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 10; // Fixed page size
+  const pageSize = 12; // Increased for card layout
   const [sortBy, setSortBy] = useState(null);
   const [sortDirection, setSortDirection] = useState('Ascending');
   const [pagination, setPagination] = useState(null);
@@ -65,12 +72,6 @@ export default function Users() {
     { value: 'Graduate', label: 'Graduate' },
   ];
 
-  const roleOptions = [
-    { value: 'Admin', label: 'Admin' },
-    { value: 'Instructor', label: 'Instructor' },
-    { value: 'Student', label: 'Student' },
-  ];
-
   const genderOptions = [
     { value: 'Male', label: 'Male' },
     { value: 'Female', label: 'Female' },
@@ -91,12 +92,6 @@ export default function Users() {
     { value: 'Female', label: 'Female', dotColor: 'pink' },
   ];
 
-  const roleFilterOptions = [
-    { value: 'Admin', label: 'Admin', dotColor: 'danger' },
-    { value: 'Instructor', label: 'Instructor', dotColor: 'warning' },
-    { value: 'Student', label: 'Student', dotColor: 'success' },
-  ];
-
   useEffect(() => {
     loadDepartments();
   }, []);
@@ -112,7 +107,7 @@ export default function Users() {
     }
   };
 
-  const loadUsers = useCallback(async () => {
+  const loadStudents = useCallback(async () => {
     setLoading(true);
     try {
       const filterParams = {};
@@ -134,7 +129,7 @@ export default function Users() {
         filterParams.MaxCredits = parseInt(filters.maxCredits);
       if (filters.name) filterParams.Name = filters.name;
 
-      const response = await userService.getAllPaginated(
+      const response = await userService.getAllStudents(
         filterParams,
         currentPage,
         pageSize,
@@ -142,34 +137,36 @@ export default function Users() {
         sortDirection
       );
 
-      let usersData = [];
+      console.log('API Response:', response);
+
+      let studentsData = [];
       let paginationData = null;
 
       if (response?.data) {
-        usersData = response.data;
+        studentsData = response.data;
         paginationData = response.pagination;
       } else if (Array.isArray(response)) {
-        usersData = response;
+        studentsData = response;
       } else {
-        usersData = response || [];
+        studentsData = response || [];
       }
 
-      setUsers(usersData);
+      setStudents(studentsData);
       if (paginationData) {
         setPagination(paginationData);
       }
 
       setFilterApplied(Object.values(filters).some(v => v !== ''));
     } catch (e) {
-      toast.error(e?.errorMessage || 'Failed to load users');
-      setUsers([]);
+      toast.error(e?.errorMessage || 'Failed to load students');
+      setStudents([]);
     }
     setLoading(false);
   }, [filters, currentPage, pageSize, sortBy, sortDirection]);
 
   useEffect(() => {
-    loadUsers();
-  }, [loadUsers]);
+    loadStudents();
+  }, [loadStudents]);
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -221,8 +218,26 @@ export default function Users() {
     }
   };
 
-  const getGenderColor = gender => {
-    return gender === 'Male' ? 'badge-info' : 'badge-pink';
+  const getGenderIcon = gender => {
+    return gender === 'Male' ? '♂️' : '♀️';
+  };
+
+  const getInitials = name => {
+    if (!name) return '?';
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
+
+  const getProfileColor = (gender, name) => {
+    if (gender === 'Male') return '#3b82f6'; // Blue for male
+    if (gender === 'Female') return '#ec4899'; // Pink for female
+    // Generate consistent color based on name
+    const hue = name ? name.length * 50 % 360 : 200;
+    return `hsl(${hue}, 70%, 60%)`;
   };
 
   const formatLevel = level => {
@@ -230,10 +245,19 @@ export default function Users() {
     return found ? found.label : level;
   };
 
+  const getGPAStatus = gpa => {
+    if (!gpa) return 'neutral';
+    if (gpa >= 3.5) return 'success';
+    if (gpa >= 2.5) return 'warning';
+    if (gpa >= 2.0) return 'info';
+    return 'danger';
+  };
+
   if (!hasRole('Admin')) {
     return (
       <div className="page-container">
-        <div className="card empty-state">
+        <div className="empty-state-card">
+          <FiUsers size={48} />
           <h3>Access Denied</h3>
           <p>You don't have permission to view this page.</p>
         </div>
@@ -246,41 +270,28 @@ export default function Users() {
       {/* Header */}
       <div className="page-header">
         <div>
-          <h1 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <h1>
             <FiUsers />
-            System Users
+            Students Directory
           </h1>
-          <p>Manage all users in the system</p>
+          <p>Manage and view all students in the system</p>
         </div>
       </div>
 
       {/* Actions Bar */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '16px',
-          marginBottom: '24px',
-        }}
-      >
-        <div style={{ display: 'flex', gap: 8 }}>
+      <div className="actions-bar">
+        <div className="actions-left">
           <button
             className={`btn ${filterApplied ? 'btn-primary' : 'btn-ghost'}`}
             onClick={() => setShowFilters(!showFilters)}
           >
             <FiFilter />
             Filters
-            {filterApplied && (
-              <span className="badge badge-primary" style={{ marginLeft: 8 }}>
-                •
-              </span>
-            )}
+            {filterApplied && <span className="filter-dot"></span>}
           </button>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div className="actions-right">
           <SortMenu
             sortBy={sortBy}
             sortDirection={sortDirection}
@@ -293,41 +304,17 @@ export default function Users() {
 
       {/* Filters Section */}
       {showFilters && (
-        <div
-          className="card"
-          style={{ marginBottom: 24, animation: 'slideDown 0.3s ease' }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: 18,
-            }}
-          >
-            <h3 style={{ margin: 0, fontSize: '0.9375rem', fontWeight: 600 }}>
-              Filter Users
-            </h3>
+        <div className="filters-card">
+          <div className="filters-header">
+            <h3>Filter Students</h3>
             {filterApplied && (
-              <button
-                className="btn btn-ghost btn-sm"
-                onClick={clearFilters}
-                style={{ display: 'flex', alignItems: 'center', gap: 4 }}
-              >
+              <button className="btn btn-ghost btn-sm" onClick={clearFilters}>
                 <FiX size={13} /> Clear All
               </button>
             )}
           </div>
 
-          {/* FilterSelect row */}
-          <div
-            style={{
-              display: 'flex',
-              gap: 12,
-              flexWrap: 'wrap',
-              alignItems: 'flex-end',
-            }}
-          >
+          <div className="filters-grid">
             {/* Level */}
             <FilterSelect
               label="Level"
@@ -335,7 +322,7 @@ export default function Users() {
               onChange={val => handleFilterChange('level', val)}
               options={levelFilterOptions}
               placeholder="All Levels"
-              icon={<FiUser size={13} />}
+              icon={<FiBook size={13} />}
             />
 
             {/* Gender */}
@@ -362,170 +349,48 @@ export default function Users() {
               icon={<FiGrid size={13} />}
             />
 
-            {/* Academic Code — plain text input */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.07em',
-                  color: '#94a3b8',
-                }}
-              >
-                Academic Code
-              </span>
+            {/* Academic Code */}
+            <div className="filter-input-group">
+              <span className="filter-label">Academic Code</span>
               <input
                 type="text"
                 placeholder="Enter code..."
                 value={filters.academicCode}
-                onChange={e =>
-                  handleFilterChange('academicCode', e.target.value)
-                }
-                style={{
-                  padding: '0 12px',
-                  height: '38px',
-                  border: '1.5px solid #e2e8f0',
-                  borderRadius: '10px',
-                  fontSize: '13.5px',
-                  fontFamily: "'DM Sans', sans-serif",
-                  outline: 'none',
-                  transition: 'border-color 0.15s, box-shadow 0.15s',
-                  minWidth: '160px',
-                }}
-                onFocus={e => {
-                  e.target.style.borderColor = '#6366f1';
-                  e.target.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.12)';
-                }}
-                onBlur={e => {
-                  e.target.style.borderColor = '#e2e8f0';
-                  e.target.style.boxShadow = 'none';
-                }}
+                onChange={e => handleFilterChange('academicCode', e.target.value)}
+                className="filter-input"
               />
             </div>
 
-            {/* Specialization — plain text input */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.07em',
-                  color: '#94a3b8',
-                }}
-              >
-                Specialization
-              </span>
+            {/* Specialization */}
+            <div className="filter-input-group">
+              <span className="filter-label">Specialization</span>
               <input
                 type="text"
                 placeholder="Enter specialization..."
                 value={filters.specialization}
-                onChange={e =>
-                  handleFilterChange('specialization', e.target.value)
-                }
-                style={{
-                  padding: '0 12px',
-                  height: '38px',
-                  border: '1.5px solid #e2e8f0',
-                  borderRadius: '10px',
-                  fontSize: '13.5px',
-                  fontFamily: "'DM Sans', sans-serif",
-                  outline: 'none',
-                  transition: 'border-color 0.15s, box-shadow 0.15s',
-                  minWidth: '160px',
-                }}
-                onFocus={e => {
-                  e.target.style.borderColor = '#6366f1';
-                  e.target.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.12)';
-                }}
-                onBlur={e => {
-                  e.target.style.borderColor = '#e2e8f0';
-                  e.target.style.boxShadow = 'none';
-                }}
+                onChange={e => handleFilterChange('specialization', e.target.value)}
+                className="filter-input"
               />
             </div>
-          </div>
 
-          {/* Search and Range Filters */}
-          <div
-            style={{
-              display: 'flex',
-              gap: 12,
-              flexWrap: 'wrap',
-              alignItems: 'flex-end',
-              marginTop: 16,
-            }}
-          >
-            {/* Search by Name */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.07em',
-                  color: '#94a3b8',
-                }}
-              >
-                Name
-              </span>
-              <div style={{ position: 'relative' }}>
-                <FiSearch
-                  style={{
-                    position: 'absolute',
-                    left: 10,
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    color: '#cbd5e1',
-                    pointerEvents: 'none',
-                  }}
-                  size={13}
-                />
+            {/* Name Search */}
+            <div className="filter-input-group">
+              <span className="filter-label">Name</span>
+              <div className="search-input-wrapper">
+                <FiSearch className="search-icon" size={13} />
                 <input
                   type="text"
                   placeholder="Search by name..."
                   value={filters.name}
-                  onChange={e =>
-                    handleFilterChange('name', e.target.value)
-                  }
-                  style={{
-                    padding: '0 12px 0 32px',
-                    height: '38px',
-                    border: '1.5px solid #e2e8f0',
-                    borderRadius: '10px',
-                    fontSize: '13.5px',
-                    fontFamily: "'DM Sans', sans-serif",
-                    outline: 'none',
-                    transition: 'border-color 0.15s, box-shadow 0.15s',
-                    minWidth: '160px',
-                  }}
-                  onFocus={e => {
-                    e.target.style.borderColor = '#6366f1';
-                    e.target.style.boxShadow =
-                      '0 0 0 3px rgba(99,102,241,0.12)';
-                  }}
-                  onBlur={e => {
-                    e.target.style.borderColor = '#e2e8f0';
-                    e.target.style.boxShadow = 'none';
-                  }}
+                  onChange={e => handleFilterChange('name', e.target.value)}
+                  className="filter-input with-icon"
                 />
               </div>
             </div>
 
             {/* Min GPA */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.07em',
-                  color: '#94a3b8',
-                }}
-              >
-                Min GPA
-              </span>
+            <div className="filter-input-group">
+              <span className="filter-label">Min GPA</span>
               <input
                 type="number"
                 step="0.01"
@@ -534,41 +399,13 @@ export default function Users() {
                 placeholder="0.0"
                 value={filters.minGPA}
                 onChange={e => handleFilterChange('minGPA', e.target.value)}
-                style={{
-                  padding: '0 12px',
-                  height: '38px',
-                  border: '1.5px solid #e2e8f0',
-                  borderRadius: '10px',
-                  fontSize: '13.5px',
-                  fontFamily: "'DM Sans', sans-serif",
-                  outline: 'none',
-                  transition: 'border-color 0.15s, box-shadow 0.15s',
-                  minWidth: '100px',
-                }}
-                onFocus={e => {
-                  e.target.style.borderColor = '#6366f1';
-                  e.target.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.12)';
-                }}
-                onBlur={e => {
-                  e.target.style.borderColor = '#e2e8f0';
-                  e.target.style.boxShadow = 'none';
-                }}
+                className="filter-input"
               />
             </div>
 
             {/* Max GPA */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.07em',
-                  color: '#94a3b8',
-                }}
-              >
-                Max GPA
-              </span>
+            <div className="filter-input-group">
+              <span className="filter-label">Max GPA</span>
               <input
                 type="number"
                 step="0.01"
@@ -577,137 +414,43 @@ export default function Users() {
                 placeholder="4.0"
                 value={filters.maxGPA}
                 onChange={e => handleFilterChange('maxGPA', e.target.value)}
-                style={{
-                  padding: '0 12px',
-                  height: '38px',
-                  border: '1.5px solid #e2e8f0',
-                  borderRadius: '10px',
-                  fontSize: '13.5px',
-                  fontFamily: "'DM Sans', sans-serif",
-                  outline: 'none',
-                  transition: 'border-color 0.15s, box-shadow 0.15s',
-                  minWidth: '100px',
-                }}
-                onFocus={e => {
-                  e.target.style.borderColor = '#6366f1';
-                  e.target.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.12)';
-                }}
-                onBlur={e => {
-                  e.target.style.borderColor = '#e2e8f0';
-                  e.target.style.boxShadow = 'none';
-                }}
+                className="filter-input"
               />
             </div>
 
             {/* Min Credits */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.07em',
-                  color: '#94a3b8',
-                }}
-              >
-                Min Credits
-              </span>
+            <div className="filter-input-group">
+              <span className="filter-label">Min Credits</span>
               <input
                 type="number"
                 min="0"
                 placeholder="0"
                 value={filters.minCredits}
                 onChange={e => handleFilterChange('minCredits', e.target.value)}
-                style={{
-                  padding: '0 12px',
-                  height: '38px',
-                  border: '1.5px solid #e2e8f0',
-                  borderRadius: '10px',
-                  fontSize: '13.5px',
-                  fontFamily: "'DM Sans', sans-serif",
-                  outline: 'none',
-                  transition: 'border-color 0.15s, box-shadow 0.15s',
-                  minWidth: '100px',
-                }}
-                onFocus={e => {
-                  e.target.style.borderColor = '#6366f1';
-                  e.target.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.12)';
-                }}
-                onBlur={e => {
-                  e.target.style.borderColor = '#e2e8f0';
-                  e.target.style.boxShadow = 'none';
-                }}
+                className="filter-input"
               />
             </div>
 
             {/* Max Credits */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.07em',
-                  color: '#94a3b8',
-                }}
-              >
-                Max Credits
-              </span>
+            <div className="filter-input-group">
+              <span className="filter-label">Max Credits</span>
               <input
                 type="number"
                 min="0"
                 placeholder="30"
                 value={filters.maxCredits}
                 onChange={e => handleFilterChange('maxCredits', e.target.value)}
-                style={{
-                  padding: '0 12px',
-                  height: '38px',
-                  border: '1.5px solid #e2e8f0',
-                  borderRadius: '10px',
-                  fontSize: '13.5px',
-                  fontFamily: "'DM Sans', sans-serif",
-                  outline: 'none',
-                  transition: 'border-color 0.15s, box-shadow 0.15s',
-                  minWidth: '100px',
-                }}
-                onFocus={e => {
-                  e.target.style.borderColor = '#6366f1';
-                  e.target.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.12)';
-                }}
-                onBlur={e => {
-                  e.target.style.borderColor = '#e2e8f0';
-                  e.target.style.boxShadow = 'none';
-                }}
+                className="filter-input"
               />
             </div>
           </div>
 
           {/* Active filter chips */}
           {filterApplied && (
-            <div
-              style={{
-                marginTop: 16,
-                paddingTop: 14,
-                borderTop: '1px solid #f1f5f9',
-                display: 'flex',
-                gap: 6,
-                flexWrap: 'wrap',
-                alignItems: 'center',
-              }}
-            >
-              <span
-                style={{
-                  fontSize: '0.8125rem',
-                  color: '#94a3b8',
-                  fontWeight: 500,
-                }}
-              >
-                Active:
-              </span>
+            <div className="active-filters">
+              <span className="active-filters-label">Active:</span>
               {filters.name && (
-                <span className="badge badge-info">
-                  Name: "{filters.name}"
-                </span>
+                <span className="badge badge-info">Name: "{filters.name}"</span>
               )}
               {filters.level && (
                 <span className="badge badge-info">
@@ -721,12 +464,7 @@ export default function Users() {
               )}
               {filters.departmentId && (
                 <span className="badge badge-info">
-                  Department:{' '}
-                  {
-                    departments.find(
-                      d => d.id === parseInt(filters.departmentId)
-                    )?.name
-                  }
+                  Dept: {departments.find(d => d.id === parseInt(filters.departmentId))?.name}
                 </span>
               )}
               {filters.academicCode && (
@@ -746,8 +484,7 @@ export default function Users() {
               )}
               {(filters.minCredits || filters.maxCredits) && (
                 <span className="badge badge-info">
-                  Credits: {filters.minCredits || '0'} -{' '}
-                  {filters.maxCredits || '∞'}
+                  Credits: {filters.minCredits || '0'} - {filters.maxCredits || '∞'}
                 </span>
               )}
             </div>
@@ -756,184 +493,621 @@ export default function Users() {
       )}
 
       {/* Results Summary */}
-      <div
-        style={{
-          marginBottom: 16,
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          gap: '12px',
-          flexWrap: 'wrap',
-        }}
-      >
-        <span className="badge badge-info" style={{ fontSize: '0.875rem' }}>
-          {pagination?.totalCount || users.length} user
-          {(pagination?.totalCount || users.length) !== 1 ? 's' : ''} found
+      <div className="results-summary">
+        <span className="results-count">
+          {pagination?.totalCount || students.length} student
+          {(pagination?.totalCount || students.length) !== 1 ? 's' : ''} found
         </span>
-        {loading && (
-          <span style={{ color: 'var(--text-light)' }}>Updating...</span>
-        )}
+        {loading && <span className="loading-indicator">Updating...</span>}
       </div>
 
-      {/* Users Table */}
-      <div className="card">
-        <div className="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Academic Code</th>
-                <th>Level</th>
-                <th>Gender</th>
-                <th>GPA</th>
-                <th>Credits</th>
-                <th>Specialization</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.length === 0 && !loading ? (
-                <tr>
-                  <td colSpan={9} className="empty-state">
-                    <div style={{ padding: '40px 20px', textAlign: 'center' }}>
-                      <FiUsers
-                        size={40}
-                        style={{ opacity: 0.3, marginBottom: 16 }}
-                      />
-                      <h3>No users found</h3>
-                      <p style={{ color: 'var(--text-light)' }}>
-                        {filterApplied
-                          ? 'Try adjusting your filters'
-                          : 'No users available'}
-                      </p>
-                      {filterApplied && (
-                        <button
-                          className="btn btn-ghost btn-sm"
-                          onClick={clearFilters}
-                          style={{ marginTop: 8 }}
-                        >
-                          Clear Filters
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                users.map(user => (
-                  <tr key={user.id}>
-                    <td>
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 8,
-                        }}
-                      >
-                        <div
-                          style={{
-                            width: 32,
-                            height: 32,
-                            borderRadius: '50%',
-                            backgroundColor: '#e2e8f0',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '0.75rem',
-                            fontWeight: 'bold',
-                            color: '#4a5568',
-                          }}
-                        >
-                          {user.displayName?.charAt(0).toUpperCase() || (
-                            <FiUser size={14} />
-                          )}
-                        </div>
-                        <strong>{user.displayName}</strong>
-                      </div>
-                    </td>
-                    <td>
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 4,
-                        }}
-                      >
-                        <FiMail
-                          size={14}
-                          style={{ color: 'var(--text-light)' }}
-                        />
-                        <span style={{ fontSize: '0.875rem' }}>
-                          {user.email}
-                        </span>
-                      </div>
-                    </td>
-                    <td>
-                      <code
-                        style={{
-                          fontSize: '0.875rem',
-                          background: 'var(--bg)',
-                          padding: '2px 6px',
-                          borderRadius: '4px',
-                          color: 'var(--primary)',
-                        }}
-                      >
-                        {user.academicCode || '—'}
-                      </code>
-                    </td>
-                    <td>
-                      <span className={`badge ${getLevelColor(user.level)}`}>
-                        {formatLevel(user.level) || '—'}
-                      </span>
-                    </td>
-                    <td>
-                      {user.gender ? (
-                        <span
-                          className={`badge ${getGenderColor(user.gender)}`}
-                        >
-                          {user.gender}
-                        </span>
-                      ) : (
-                        <span className="badge badge-neutral">—</span>
-                      )}
-                    </td>
-                    <td>
-                      <span className="badge badge-neutral">
-                        {user.totalGPA?.toFixed(2) || '—'}
-                      </span>
-                    </td>
-                    <td>
-                      <span className="badge badge-neutral">
-                        {user.totalCredits || '—'}
-                      </span>
-                    </td>
-                    <td>
-                      <span className="badge badge-neutral">
-                        {user.specialization || '—'}
-                      </span>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+      {/* Facebook-style Cards Grid */}
+      {students.length === 0 && !loading ? (
+        <div className="empty-state-card">
+          <FiUsers size={48} />
+          <h3>No students found</h3>
+          <p>
+            {filterApplied
+              ? 'Try adjusting your filters'
+              : 'No students available'}
+          </p>
+          {filterApplied && (
+            <button className="btn btn-ghost" onClick={clearFilters}>
+              Clear Filters
+            </button>
+          )}
         </div>
+      ) : (
+        <div className="students-grid">
+          {students.map(student => (
+            <div key={student.id} className="student-card">
+              <div className="card-header">
+                <div 
+                  className="profile-picture"
+                  style={{ backgroundColor: getProfileColor(student.gender, student.displayName) }}
+                >
+                  {student.profilePicture ? (
+                    <img src={student.profilePicture} alt={student.displayName} />
+                  ) : (
+                    <span className="initials">{getInitials(student.displayName)}</span>
+                  )}
+                </div>
+                
+                {/* Level Badge */}
+                {student.level && (
+                  <span className={`level-badge ${getLevelColor(student.level)}`}>
+                    {formatLevel(student.level)}
+                  </span>
+                )}
+              </div>
 
-        {/* Pagination Component */}
-        {users.length > 0 && (
-          <div style={{ marginTop: 16 }}>
-            <Pagination
-              currentPage={pagination?.currentPage || currentPage}
-              totalPages={pagination?.totalPages || 1}
-              pageSize={pageSize}
-              totalCount={pagination?.totalCount || users.length}
-              onPageChange={handlePageChange}
-              isLoading={loading}
-            />
-          </div>
-        )}
-      </div>
+              <div className="card-body">
+                <h3 className="student-name">{student.displayName || 'N/A'}</h3>
+                <p className="student-username">@{student.userName || 'username'}</p>
+                
+                <div className="student-info">
+                  <div className="info-item">
+                    <FiMail className="info-icon" />
+                    <span className="info-text">{student.email || 'N/A'}</span>
+                  </div>
+                  
+                  {student.phoneNumber && (
+                    <div className="info-item">
+                      <FiPhone className="info-icon" />
+                      <span className="info-text">{student.phoneNumber}</span>
+                    </div>
+                  )}
+                  
+                  <div className="info-item">
+                    <FiHash className="info-icon" />
+                    <span className="info-text">
+                      <span className="info-label">Code:</span> {student.academicCode || 'N/A'}
+                    </span>
+                  </div>
+                  
+                  <div className="info-item">
+                    <FiBriefcase className="info-icon" />
+                    <span className="info-text">
+                      <span className="info-label">Dept:</span> {student.department || 'N/A'}
+                    </span>
+                  </div>
+                  
+                  {student.specialization && (
+                    <div className="info-item">
+                      <FiBook className="info-icon" />
+                      <span className="info-text">
+                        <span className="info-label">Spec:</span> {student.specialization}
+                      </span>
+                    </div>
+                  )}
+                  
+                  {student.gender && (
+                    <div className="info-item">
+                      <FiUser className="info-icon" />
+                      <span className="info-text">
+                        <span className="info-label">Gender:</span> {student.gender} {getGenderIcon(student.gender)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Academic Stats Cards */}
+                <div className="stats-grid">
+                  <div className="stat-item">
+                    <FiAward className={`stat-icon ${getGPAStatus(student.totalGPA)}`} />
+                    <div className="stat-content">
+                      <span className="stat-label">GPA</span>
+                      <span className={`stat-value ${getGPAStatus(student.totalGPA)}`}>
+                        {student.totalGPA?.toFixed(2) || '0.00'}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="stat-item">
+                    <FiTrendingUp className="stat-icon info" />
+                    <div className="stat-content">
+                      <span className="stat-label">Credits</span>
+                      <span className="stat-value">
+                        {student.totalCredits || '0'}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="stat-item">
+                    <FiStar className="stat-icon warning" />
+                    <div className="stat-content">
+                      <span className="stat-label">Allowed</span>
+                      <span className="stat-value">
+                        {student.allowedCredits || '0'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Facebook-style action buttons */}
+              <div className="card-actions">
+                <button className="action-btn primary">
+                  <FiUserPlus />
+                  <span>View Profile</span>
+                </button>
+                <button className="action-btn secondary">
+                  <FiMailIcon />
+                  <span>Message</span>
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {students.length > 0 && (
+        <div className="pagination-container">
+          <Pagination
+            currentPage={pagination?.currentPage || currentPage}
+            totalPages={pagination?.totalPages || 1}
+            pageSize={pageSize}
+            totalCount={pagination?.totalCount || students.length}
+            onPageChange={handlePageChange}
+            isLoading={loading}
+          />
+        </div>
+      )}
 
       <style jsx>{`
+        .page-container {
+          padding: 24px;
+          max-width: 1400px;
+          margin: 0 auto;
+        }
+
+        .page-header {
+          margin-bottom: 24px;
+        }
+
+        .page-header h1 {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          font-size: 28px;
+          font-weight: 600;
+          color: #1e293b;
+          margin: 0 0 8px 0;
+        }
+
+        .page-header p {
+          color: #64748b;
+          margin: 0;
+          font-size: 15px;
+        }
+
+        .actions-bar {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 16px;
+          margin-bottom: 24px;
+        }
+
+        .actions-left {
+          display: flex;
+          gap: 8px;
+        }
+
+        .btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 16px;
+          border-radius: 8px;
+          font-size: 14px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s;
+          border: none;
+          background: transparent;
+        }
+
+        .btn-ghost {
+          background: #f1f5f9;
+          color: #334155;
+        }
+
+        .btn-ghost:hover {
+          background: #e2e8f0;
+        }
+
+        .btn-primary {
+          background: #2563eb;
+          color: white;
+        }
+
+        .btn-primary:hover {
+          background: #1d4ed8;
+        }
+
+        .btn-sm {
+          padding: 6px 12px;
+          font-size: 13px;
+        }
+
+        .filter-dot {
+          width: 6px;
+          height: 6px;
+          background: #2563eb;
+          border-radius: 50%;
+          margin-left: 4px;
+        }
+
+        .filters-card {
+          background: white;
+          border-radius: 16px;
+          padding: 20px;
+          margin-bottom: 24px;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+          border: 1px solid #eef2f6;
+          animation: slideDown 0.3s ease;
+        }
+
+        .filters-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 20px;
+        }
+
+        .filters-header h3 {
+          margin: 0;
+          font-size: 16px;
+          font-weight: 600;
+          color: #1e293b;
+        }
+
+        .filters-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+          gap: 16px;
+        }
+
+        .filter-input-group {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+
+        .filter-label {
+          font-size: 11px;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.07em;
+          color: #94a3b8;
+        }
+
+        .filter-input {
+          height: 40px;
+          padding: 0 12px;
+          border: 1.5px solid #e2e8f0;
+          border-radius: 10px;
+          font-size: 14px;
+          font-family: inherit;
+          outline: none;
+          transition: all 0.15s;
+          width: 100%;
+        }
+
+        .filter-input:focus {
+          border-color: #2563eb;
+          box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+        }
+
+        .filter-input.with-icon {
+          padding-left: 32px;
+        }
+
+        .search-input-wrapper {
+          position: relative;
+        }
+
+        .search-icon {
+          position: absolute;
+          left: 10px;
+          top: 50%;
+          transform: translateY(-50%);
+          color: #94a3b8;
+          pointer-events: none;
+        }
+
+        .active-filters {
+          margin-top: 20px;
+          padding-top: 16px;
+          border-top: 1px solid #eef2f6;
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+          align-items: center;
+        }
+
+        .active-filters-label {
+          font-size: 13px;
+          color: #64748b;
+          font-weight: 500;
+        }
+
+        .results-summary {
+          margin-bottom: 20px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .results-count {
+          background: #f1f5f9;
+          padding: 6px 12px;
+          border-radius: 20px;
+          font-size: 14px;
+          color: #334155;
+          font-weight: 500;
+        }
+
+        .loading-indicator {
+          color: #64748b;
+          font-size: 14px;
+        }
+
+        .students-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+          gap: 20px;
+          margin-bottom: 24px;
+        }
+
+        .student-card {
+          background: white;
+          border-radius: 16px;
+          overflow: hidden;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+          border: 1px solid #eef2f6;
+          transition: all 0.2s;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .student-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+          border-color: #d1d9e6;
+        }
+
+        .card-header {
+          position: relative;
+          padding: 24px 20px 0 20px;
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+        }
+
+        .profile-picture {
+          width: 90px;
+          height: 90px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-weight: 600;
+          font-size: 28px;
+          border: 3px solid white;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .profile-picture img {
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          object-fit: cover;
+        }
+
+        .initials {
+          font-size: 32px;
+          font-weight: 600;
+        }
+
+        .level-badge {
+          padding: 6px 12px;
+          border-radius: 20px;
+          font-size: 12px;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        .card-body {
+          padding: 16px 20px;
+          flex: 1;
+        }
+
+        .student-name {
+          margin: 0 0 4px 0;
+          font-size: 20px;
+          font-weight: 600;
+          color: #1e293b;
+        }
+
+        .student-username {
+          margin: 0 0 16px 0;
+          font-size: 14px;
+          color: #64748b;
+        }
+
+        .student-info {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          margin-bottom: 16px;
+        }
+
+        .info-item {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          font-size: 14px;
+          color: #475569;
+        }
+
+        .info-icon {
+          color: #94a3b8;
+          flex-shrink: 0;
+          width: 16px;
+        }
+
+        .info-text {
+          word-break: break-word;
+          line-height: 1.4;
+          font-size: 13px;
+        }
+
+        .info-label {
+          color: #94a3b8;
+          font-weight: 500;
+          margin-right: 4px;
+        }
+
+        .stats-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 10px;
+          margin-top: 16px;
+          padding-top: 16px;
+          border-top: 1px solid #eef2f6;
+        }
+
+        .stat-item {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px;
+          background: #f8fafc;
+          border-radius: 12px;
+        }
+
+        .stat-icon {
+          width: 20px;
+          height: 20px;
+        }
+
+        .stat-icon.success {
+          color: #10b981;
+        }
+
+        .stat-icon.warning {
+          color: #f59e0b;
+        }
+
+        .stat-icon.danger {
+          color: #ef4444;
+        }
+
+        .stat-icon.info {
+          color: #3b82f6;
+        }
+
+        .stat-content {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .stat-label {
+          font-size: 10px;
+          font-weight: 600;
+          text-transform: uppercase;
+          color: #94a3b8;
+          letter-spacing: 0.05em;
+        }
+
+        .stat-value {
+          font-size: 14px;
+          font-weight: 600;
+          color: #1e293b;
+        }
+
+        .stat-value.success {
+          color: #10b981;
+        }
+
+        .stat-value.warning {
+          color: #f59e0b;
+        }
+
+        .stat-value.danger {
+          color: #ef4444;
+        }
+
+        .card-actions {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1px;
+          background: #eef2f6;
+          border-top: 1px solid #eef2f6;
+        }
+
+        .action-btn {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          padding: 14px;
+          background: white;
+          border: none;
+          font-size: 14px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s;
+          color: #475569;
+        }
+
+        .action-btn:hover {
+          background: #f8fafc;
+        }
+
+        .action-btn.primary {
+          color: #2563eb;
+        }
+
+        .action-btn.primary:hover {
+          background: #eff6ff;
+        }
+
+        .action-btn.secondary:hover {
+          background: #f1f5f9;
+        }
+
+        .empty-state-card {
+          background: white;
+          border-radius: 16px;
+          padding: 60px 20px;
+          text-align: center;
+          border: 1px solid #eef2f6;
+          color: #94a3b8;
+        }
+
+        .empty-state-card h3 {
+          margin: 16px 0 8px 0;
+          font-size: 18px;
+          font-weight: 600;
+          color: #334155;
+        }
+
+        .empty-state-card p {
+          margin: 0 0 20px 0;
+          color: #64748b;
+        }
+
+        .pagination-container {
+          margin-top: 24px;
+        }
+
         @keyframes slideDown {
           from {
             opacity: 0;
@@ -945,6 +1119,7 @@ export default function Users() {
           }
         }
 
+        /* Badge color variations */
         .badge-pink {
           background-color: #fce7f3;
           color: #9d174d;
