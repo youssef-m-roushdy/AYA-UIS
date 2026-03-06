@@ -95,6 +95,7 @@ export default function Layout() {
       label: 'Promote',
       roles: ['Admin'],
     },
+    
   ];
 
   // Student navigation

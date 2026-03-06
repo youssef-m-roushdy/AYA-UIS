@@ -11,23 +11,27 @@ import Login from './pages/auth/Login';
 import Dashboard from './pages/dashboard/Dashboard';
 import Departments from './pages/departments/Departments';
 import Courses from './pages/courses/Courses';
+// Admin pages
 import StudyYears from './pages/admin/StudyYears';
+import AdminStudyYearDetails from './pages/admin/AdminStudyYearDetails';
+import AdminSemesterDetail from './pages/admin/AdminSemesterDetail';
 import Students from './pages/admin/Students';
 import Roles from './pages/admin/Roles';
 import PromoteStudents from './pages/admin/PromoteStudents';
-import StudyYearFees from './pages/admin/StudyYearFees';
 import Users from './pages/admin/Users';
+// Student pages
 import MyCourses from './pages/student/MyCourses';
 import Timeline from './pages/student/Timeline';
 import Profile from './pages/student/Profile';
 import MyStudyYears from './pages/student/MyStudyYears';
-import StudyYearSemesters from './pages/student/StudyYearSemesters';
+import DepartmentCourses from './pages/student/DepartmentCourses';
 import SemesterCourses from './pages/student/SemesterCourses';
 import CourseUploads from './pages/student/CourseUploads';
-import DepartmentCourses from './pages/student/DepartmentCourses';
+import StudyYearSemesters from './pages/student/StudyYearSemesters';
+import ChangePassword from './pages/student/ChangePassword';
+// Auth pages
 import ForgotPassword from './pages/auth/ForgotPassword';
 import ResetPassword from './pages/auth/ResetPassword';
-import ChangePassword from './pages/student/ChangePassword';
 
 import './styles/globals.css';
 
@@ -51,6 +55,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          
           {/* Protected – inside Layout */}
           <Route
             path="/"
@@ -60,11 +65,11 @@ function App() {
               </ProtectedRoute>
             }
           >
-            {/* Dashboard - accessible by all authenticated users */}
+            {/* Dashboard */}
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<Dashboard />} />
 
-            {/* Admin routes - only users with Admin role */}
+            {/* Admin routes */}
             <Route
               path="admin/departments"
               element={
@@ -81,6 +86,7 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            {/* NEW: Admin Study Years */}
             <Route
               path="admin/study-years"
               element={
@@ -89,11 +95,21 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            {/* NEW: Admin Study Year Details */}
             <Route
-              path="admin/study-years/:studyYearId/fees"
+              path="admin/study-year/:studyYearId/manage"
               element={
                 <ProtectedRoute roles={['Admin']}>
-                  <StudyYearFees />
+                  <AdminStudyYearDetails />
+                </ProtectedRoute>
+              }
+            />
+            {/* NEW: Admin Semester Detail */}
+            <Route
+              path="admin/study-year/:studyYearId/semester/:semesterId/detail"
+              element={
+                <ProtectedRoute roles={['Admin']}>
+                  <AdminSemesterDetail />
                 </ProtectedRoute>
               }
             />
@@ -130,7 +146,7 @@ function App() {
               }
             />
 
-            {/* Student routes - only users with Student role */}
+            {/* Student routes */}
             <Route
               path="student/my-courses"
               element={
@@ -147,6 +163,7 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            {/* NEW: Student Study Years List */}
             <Route
               path="student/my-study-years"
               element={
@@ -155,19 +172,20 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="student/courses"
-              element={
-                <ProtectedRoute roles={['Student']}>
-                  <DepartmentCourses />
-                </ProtectedRoute>
-              }
-            />
+            {/* NEW: Student Study Year Details (Semesters & Fees) */}
             <Route
               path="student/study-year/:studyYearId/semesters"
               element={
                 <ProtectedRoute roles={['Student']}>
                   <StudyYearSemesters />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="student/courses"
+              element={
+                <ProtectedRoute roles={['Student']}>
+                  <DepartmentCourses />
                 </ProtectedRoute>
               }
             />

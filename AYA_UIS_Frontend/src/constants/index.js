@@ -112,12 +112,16 @@ export const ROUTES = {
     SCHEDULES: '/admin/schedules',
     ROLES: '/admin/roles',
     PROMOTE_STUDENTS: '/admin/promote-students',
+    STUDY_YEARS: '/admin/study-years',
+    STUDY_YEAR_FEES: '/admin/study-years/:studyYearId/fees',
   },
   STUDENT: {
     MY_COURSES: '/student/my-courses',
     REGISTER_COURSES: '/student/register',
     MY_TIMELINE: '/student/timeline',
     MY_STUDY_YEARS: '/student/my-study-years',
+    STUDY_YEAR_DETAILS: '/student/study-year/:studyYearId',
+    SEMESTER_COURSES: '/student/study-year/:studyYearId/semester/:semesterId/courses',
     DEPARTMENT_COURSES: '/student/courses',
     STUDY_YEAR_SEMESTERS: '/student/study-year/:studyYearId/semesters',
     SEMESTER_COURSES:
