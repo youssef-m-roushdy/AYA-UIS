@@ -52,7 +52,9 @@ export const API_ENDPOINTS = {
     BY_ID: id => `${API_BASE}/Registration/${id}`,
     BY_YEAR: yearId => `${API_BASE}/Registration/${yearId}/year`,
     BY_SEMESTER: (yearId, semId) =>
-      `${API_BASE}/Registration/${yearId}/year/${semId}/semester`,
+      `${API_BASE}/Registration/student/${yearId}/year/${semId}/semester`,
+    PENDING: (studyYearId, semesterId) =>
+      `${API_BASE}/Registration/${studyYearId}/year/${semesterId}/semester`,
   },
   SEMESTERS: {
     BY_YEAR: yearId => `${API_BASE}/Semester/${yearId}/study-year`,
@@ -121,7 +123,8 @@ export const ROUTES = {
     MY_TIMELINE: '/student/timeline',
     MY_STUDY_YEARS: '/student/my-study-years',
     STUDY_YEAR_DETAILS: '/student/study-year/:studyYearId',
-    SEMESTER_COURSES: '/student/study-year/:studyYearId/semester/:semesterId/courses',
+    SEMESTER_COURSES:
+      '/student/study-year/:studyYearId/semester/:semesterId/courses',
     DEPARTMENT_COURSES: '/student/courses',
     STUDY_YEAR_SEMESTERS: '/student/study-year/:studyYearId/semesters',
     SEMESTER_COURSES:

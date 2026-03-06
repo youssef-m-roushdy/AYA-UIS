@@ -9,7 +9,7 @@ using Shared.Respones;
 
 namespace AYA_UIS.Application.Queries.Courses
 {
-    public class GetAllCoursesQuery : IRequest<PagedResponse<CourseDto>>
+    public class GetAllCoursesQuery : IRequest<PagedResponse<CourseWithDepartmentDto>>
     {
         public CourseQuery Query { get; set; }
 

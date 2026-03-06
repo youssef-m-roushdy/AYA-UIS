@@ -9,7 +9,7 @@ namespace AYA_UIS.Application.Dtos.RegistrationDtos
     public class UpdateRegistrationDto
     {
         public RegistrationStatus Status { get; set; }
-        public string? Reason { get; set; } = null!;
-        public Grads? Grade { get; set; } = null!;
+        public string? Reason { get; set; } 
+        public Grads? Grade { get; set; }
     }
 }

@@ -6,10 +6,13 @@ using System.Threading.Tasks;
 using AYA_UIS.Application.Commands.Registrations;
 using AYA_UIS.Application.Dtos.RegistrationDtos;
 using AYA_UIS.Application.Queries.Registrations;
+using AYA_UIS.Domain.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using Shared.Respones;
 
 namespace AYA_UIS.Infrastructure.Presentation.Controllers
 {
@@ -46,7 +49,7 @@ namespace AYA_UIS.Infrastructure.Presentation.Controllers
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteRegistration(int id)
-        {            
+        {
             await _mediator.Send(new DeleteRegistrationCommand(id));
             return NoContent();
         }
@@ -76,7 +79,7 @@ namespace AYA_UIS.Infrastructure.Presentation.Controllers
         }
 
         [Authorize]
-        [HttpGet("{studyYearId}/year/{semesterId}/semester")]
+        [HttpGet("student/{studyYearId}/year/{semesterId}/semester")]
         public async Task<IActionResult> GetRegisteredSemesterCourses(int studyYearId, int semesterId)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -85,6 +88,24 @@ namespace AYA_UIS.Infrastructure.Presentation.Controllers
 
             var result = await _mediator.Send(new GetRegisteredSemesterCoursesQuery(studyYearId, semesterId, userId));
             return Ok(result);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("{studyYearId}/year/{semesterId}/semester")]
+        public async Task<IActionResult> GetPendingRegistrations(int studyYearId, int semesterId, [FromQuery] RegistrationQuery registrationQuery)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var (registrations, totalCount) = await _mediator.Send(
+                new GetAllSemesterRegistrationsQuery(studyYearId, semesterId, registrationQuery));
+
+            return Ok(PagedResponse<RegistrationDto>.SuccessResponse(
+            registrations,
+            registrationQuery.PageNumber,
+            registrationQuery.PageSize,
+            totalCount));
         }
     }
 }

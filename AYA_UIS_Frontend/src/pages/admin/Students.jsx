@@ -236,7 +236,7 @@ export default function Students() {
     if (gender === 'Male') return '#3b82f6'; // Blue for male
     if (gender === 'Female') return '#ec4899'; // Pink for female
     // Generate consistent color based on name
-    const hue = name ? name.length * 50 % 360 : 200;
+    const hue = name ? (name.length * 50) % 360 : 200;
     return `hsl(${hue}, 70%, 60%)`;
   };
 
@@ -356,7 +356,9 @@ export default function Students() {
                 type="text"
                 placeholder="Enter code..."
                 value={filters.academicCode}
-                onChange={e => handleFilterChange('academicCode', e.target.value)}
+                onChange={e =>
+                  handleFilterChange('academicCode', e.target.value)
+                }
                 className="filter-input"
               />
             </div>
@@ -368,7 +370,9 @@ export default function Students() {
                 type="text"
                 placeholder="Enter specialization..."
                 value={filters.specialization}
-                onChange={e => handleFilterChange('specialization', e.target.value)}
+                onChange={e =>
+                  handleFilterChange('specialization', e.target.value)
+                }
                 className="filter-input"
               />
             </div>
@@ -464,7 +468,12 @@ export default function Students() {
               )}
               {filters.departmentId && (
                 <span className="badge badge-info">
-                  Dept: {departments.find(d => d.id === parseInt(filters.departmentId))?.name}
+                  Dept:{' '}
+                  {
+                    departments.find(
+                      d => d.id === parseInt(filters.departmentId)
+                    )?.name
+                  }
                 </span>
               )}
               {filters.academicCode && (
@@ -484,7 +493,8 @@ export default function Students() {
               )}
               {(filters.minCredits || filters.maxCredits) && (
                 <span className="badge badge-info">
-                  Credits: {filters.minCredits || '0'} - {filters.maxCredits || '∞'}
+                  Credits: {filters.minCredits || '0'} -{' '}
+                  {filters.maxCredits || '∞'}
                 </span>
               )}
             </div>
@@ -522,20 +532,32 @@ export default function Students() {
           {students.map(student => (
             <div key={student.id} className="student-card">
               <div className="card-header">
-                <div 
+                <div
                   className="profile-picture"
-                  style={{ backgroundColor: getProfileColor(student.gender, student.displayName) }}
+                  style={{
+                    backgroundColor: getProfileColor(
+                      student.gender,
+                      student.displayName
+                    ),
+                  }}
                 >
                   {student.profilePicture ? (
-                    <img src={student.profilePicture} alt={student.displayName} />
+                    <img
+                      src={student.profilePicture}
+                      alt={student.displayName}
+                    />
                   ) : (
-                    <span className="initials">{getInitials(student.displayName)}</span>
+                    <span className="initials">
+                      {getInitials(student.displayName)}
+                    </span>
                   )}
                 </div>
-                
+
                 {/* Level Badge */}
                 {student.level && (
-                  <span className={`level-badge ${getLevelColor(student.level)}`}>
+                  <span
+                    className={`level-badge ${getLevelColor(student.level)}`}
+                  >
                     {formatLevel(student.level)}
                   </span>
                 )}
@@ -543,49 +565,55 @@ export default function Students() {
 
               <div className="card-body">
                 <h3 className="student-name">{student.displayName || 'N/A'}</h3>
-                <p className="student-username">@{student.userName || 'username'}</p>
-                
+                <p className="student-username">
+                  @{student.userName || 'username'}
+                </p>
+
                 <div className="student-info">
                   <div className="info-item">
                     <FiMail className="info-icon" />
                     <span className="info-text">{student.email || 'N/A'}</span>
                   </div>
-                  
+
                   {student.phoneNumber && (
                     <div className="info-item">
                       <FiPhone className="info-icon" />
                       <span className="info-text">{student.phoneNumber}</span>
                     </div>
                   )}
-                  
+
                   <div className="info-item">
                     <FiHash className="info-icon" />
                     <span className="info-text">
-                      <span className="info-label">Code:</span> {student.academicCode || 'N/A'}
+                      <span className="info-label">Code:</span>{' '}
+                      {student.academicCode || 'N/A'}
                     </span>
                   </div>
-                  
+
                   <div className="info-item">
                     <FiBriefcase className="info-icon" />
                     <span className="info-text">
-                      <span className="info-label">Dept:</span> {student.department || 'N/A'}
+                      <span className="info-label">Dept:</span>{' '}
+                      {student.department || 'N/A'}
                     </span>
                   </div>
-                  
+
                   {student.specialization && (
                     <div className="info-item">
                       <FiBook className="info-icon" />
                       <span className="info-text">
-                        <span className="info-label">Spec:</span> {student.specialization}
+                        <span className="info-label">Spec:</span>{' '}
+                        {student.specialization}
                       </span>
                     </div>
                   )}
-                  
+
                   {student.gender && (
                     <div className="info-item">
                       <FiUser className="info-icon" />
                       <span className="info-text">
-                        <span className="info-label">Gender:</span> {student.gender} {getGenderIcon(student.gender)}
+                        <span className="info-label">Gender:</span>{' '}
+                        {student.gender} {getGenderIcon(student.gender)}
                       </span>
                     </div>
                   )}
@@ -594,15 +622,19 @@ export default function Students() {
                 {/* Academic Stats Cards */}
                 <div className="stats-grid">
                   <div className="stat-item">
-                    <FiAward className={`stat-icon ${getGPAStatus(student.totalGPA)}`} />
+                    <FiAward
+                      className={`stat-icon ${getGPAStatus(student.totalGPA)}`}
+                    />
                     <div className="stat-content">
                       <span className="stat-label">GPA</span>
-                      <span className={`stat-value ${getGPAStatus(student.totalGPA)}`}>
+                      <span
+                        className={`stat-value ${getGPAStatus(student.totalGPA)}`}
+                      >
                         {student.totalGPA?.toFixed(2) || '0.00'}
                       </span>
                     </div>
                   </div>
-                  
+
                   <div className="stat-item">
                     <FiTrendingUp className="stat-icon info" />
                     <div className="stat-content">
@@ -612,7 +644,7 @@ export default function Students() {
                       </span>
                     </div>
                   </div>
-                  
+
                   <div className="stat-item">
                     <FiStar className="stat-icon warning" />
                     <div className="stat-content">
@@ -746,7 +778,7 @@ export default function Students() {
           border-radius: 16px;
           padding: 20px;
           margin-bottom: 24px;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
           border: 1px solid #eef2f6;
           animation: slideDown 0.3s ease;
         }
@@ -799,7 +831,7 @@ export default function Students() {
 
         .filter-input:focus {
           border-color: #2563eb;
-          box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+          box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
         .filter-input.with-icon {
@@ -867,7 +899,7 @@ export default function Students() {
           background: white;
           border-radius: 16px;
           overflow: hidden;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
           border: 1px solid #eef2f6;
           transition: all 0.2s;
           display: flex;
@@ -876,7 +908,7 @@ export default function Students() {
 
         .student-card:hover {
           transform: translateY(-2px);
-          box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+          box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
           border-color: #d1d9e6;
         }
 
@@ -899,7 +931,7 @@ export default function Students() {
           font-weight: 600;
           font-size: 28px;
           border: 3px solid white;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         .profile-picture img {

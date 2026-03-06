@@ -12,8 +12,8 @@ namespace AYA_UIS.Application.Contracts
         Task<userProfileDetailsDto> GetUserProfileByAcademicCodeAsync(string academicCode);
         Task<string> UpdateProfilePictureAsync(string userId, UpdateProfilePictureDto dto);
         Task UpdateStudentSpecializationAsync(string academicCode, UpdateStudentSpecializationDto dto);
-        Task<IEnumerable<UserDto>> GetAllUsers(string userId, UserQueries query);
-        Task<(IEnumerable<UserDto> Data, int TotalCount)> GetAllUsersWithPaginationAsync(string userId, UserQueries query);
+        Task<IEnumerable<UserWithDepartmentDto>> GetAllUsers(string userId, UserQueries query);
+        Task<(IEnumerable<UserWithDepartmentDto> Data, int TotalCount)> GetAllUsersWithPaginationAsync(string userId, UserQueries query);
         Task<IEnumerable<StudentUserDto>> GetUnGraduateStudentUsers(string userId, StudentQueries query);
         Task<(IEnumerable<StudentUserDto> Data, int TotalCount)> GetUnGraduateStudentUsersWithPaginationAsync(string userId, StudentQueries query);
         Task<IEnumerable<StudentUserDto>> GetAllStudentUsers(string userId, StudentQueries query);

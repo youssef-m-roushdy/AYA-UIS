@@ -76,7 +76,7 @@ namespace AYA_UIS.Infrastructure.Presentation.Controllers
                 return Unauthorized();
 
             var (users, totalCount) = await _serviceManager.UserService.GetAllUsersWithPaginationAsync(userId, queries);
-            return Ok(PagedResponse<UserDto>.SuccessResponse(users, queries.PageNumber, queries.PageSize, totalCount));
+            return Ok(PagedResponse<UserWithDepartmentDto>.SuccessResponse(users, queries.PageNumber, queries.PageSize, totalCount));
         }
 
         [Authorize(Roles = "Admin")]

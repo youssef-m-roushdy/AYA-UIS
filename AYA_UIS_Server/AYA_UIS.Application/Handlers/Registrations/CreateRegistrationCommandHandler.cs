@@ -101,8 +101,10 @@ namespace AYA_UIS.Application.Handlers.Registrations
                 StudyYearId = request.RegistrationDto.StudyYearId,
                 SemesterId = request.RegistrationDto.SemesterId,
                 Status = RegistrationStatus.Pending,
+                Progress = CourseProgress.NotStarted,
                 Grade = null,
-                IsPassed = false
+                IsPassed = false,
+                RegisteredAt = DateTime.UtcNow
             };
 
             await _unitOfWork.Registrations.AddAsync(registration);

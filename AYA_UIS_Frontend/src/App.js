@@ -25,7 +25,7 @@ import Timeline from './pages/student/Timeline';
 import Profile from './pages/student/Profile';
 import MyStudyYears from './pages/student/MyStudyYears';
 import DepartmentCourses from './pages/student/DepartmentCourses';
-import SemesterCourses from './pages/student/SemesterCourses';
+import StudentSemesterDetails from './pages/student/StudentSemesterDetails';
 import CourseUploads from './pages/student/CourseUploads';
 import StudyYearSemesters from './pages/student/StudyYearSemesters';
 import ChangePassword from './pages/student/ChangePassword';
@@ -193,7 +193,7 @@ function App() {
               path="student/study-year/:studyYearId/semester/:semesterId/courses"
               element={
                 <ProtectedRoute roles={['Student']}>
-                  <SemesterCourses />
+                  <StudentSemesterDetails />
                 </ProtectedRoute>
               }
             />

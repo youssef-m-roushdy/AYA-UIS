@@ -34,7 +34,7 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<UserDto>> GetAllUsers(string userId, UserQueries query)
+        public async Task<IEnumerable<UserWithDepartmentDto>> GetAllUsers(string userId, UserQueries query)
         {
             
             var usersQuery = _dbContext.Users
@@ -70,10 +70,10 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
 
             var users = await usersQuery.ToListAsync();
 
-            return _mapper.Map<IEnumerable<UserDto>>(users);
+            return _mapper.Map<IEnumerable<UserWithDepartmentDto>>(users);
         }
 
-        public async Task<(IEnumerable<UserDto> Data, int TotalCount)> GetAllUsersWithPaginationAsync(string userId, UserQueries query)
+        public async Task<(IEnumerable<UserWithDepartmentDto> Data, int TotalCount)> GetAllUsersWithPaginationAsync(string userId, UserQueries query)
         {
             var usersQuery = _dbContext.Users
                 .Where(u => u.Id != userId)
@@ -118,7 +118,7 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
             usersQuery = usersQuery.ApplyPagination(query);
 
             var users = await usersQuery.ToListAsync();
-            var result = _mapper.Map<IEnumerable<UserDto>>(users);
+            var result = _mapper.Map<IEnumerable<UserWithDepartmentDto>>(users);
 
             return (result, totalCount);
         }

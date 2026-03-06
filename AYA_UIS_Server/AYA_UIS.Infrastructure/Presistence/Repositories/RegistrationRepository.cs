@@ -1,6 +1,8 @@
 using AYA_UIS.Domain.Contracts;
 using AYA_UIS.Domain.Entities.Models;
 using AYA_UIS.Domain.Enums;
+using AYA_UIS.Domain.Queries;
+using AYA_UIS.Infrastructure.Presistence.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Presistence;
 
@@ -100,6 +102,42 @@ namespace AYA_UIS.Infrastructure.Presistence.Repositories
                 query = query.Where(r => r.UserId == userId);
 
             return await query.ToListAsync();
+        }
+
+        public async Task<(IEnumerable<Registration> Data, int TotalCount)> GetAllSemesterRegistrationsPaginatedAsync(
+            int semesterId,
+            int studyYearId,
+            RegistrationQuery? registrationQuery,
+            CancellationToken cancellationToken)
+        {
+            // ✅ Guarantee non-null for the rest of the method
+            registrationQuery ??= new RegistrationQuery();
+
+            var query = _dbContext.Registrations
+                .Where(r => r.SemesterId == semesterId && r.StudyYearId == studyYearId)
+                .Include(r => r.Course)
+                .Include(r => r.User)
+                .AsNoTracking()
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(registrationQuery.StudentUserName))
+                query = query.Where(r => r.User.UserName.Contains(registrationQuery.StudentUserName));
+            if (!string.IsNullOrEmpty(registrationQuery.CourseName))
+                query = query.Where(r => r.Course.Name.Contains(registrationQuery.CourseName));
+            if (!string.IsNullOrEmpty(registrationQuery.AcademicCode))
+                query = query.Where(r => r.User.AcademicCode.Contains(registrationQuery.AcademicCode));
+            if (!string.IsNullOrEmpty(registrationQuery.CourseCode))
+                query = query.Where(r => r.Course.Code.Contains(registrationQuery.CourseCode));
+            if (registrationQuery.Status.HasValue)
+                query = query.Where(r => r.Status == registrationQuery.Status.Value);
+
+            var totalCount = await query.CountAsync(cancellationToken);
+
+            query = query.ApplyPagination(registrationQuery); // ✅ never null now
+
+            var result = await query.ToListAsync(cancellationToken);
+
+            return (result, totalCount);
         }
     }
 }
