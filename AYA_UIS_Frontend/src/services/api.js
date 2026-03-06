@@ -67,7 +67,7 @@ class ApiService {
     if (!res.ok) {
       const errBody = await res.json().catch(() => ({}));
       console.error('Refresh failed response:', errBody);
-      window.alert('Session refresh failed. Please log in again.'); // Optional: notify user of refresh failure
+      //window.alert('Session refresh failed. Please log in again.'); // Optional: notify user of refresh failure
       throw new Error('Refresh failed.');
     }
 
@@ -77,7 +77,7 @@ class ApiService {
       data.accessToken?.substring(0, 20) + '...'
     );
     this.setTokens(data.accessToken, data.refreshToken);
-    window.alert('Session refreshed successfully.'); // Optional: notify user of successful refresh
+    //window.alert('Session refreshed successfully.'); // Optional: notify user of successful refresh
     return data.accessToken;
   }
 
