@@ -16,7 +16,7 @@ namespace AYA_UIS.Application.Dtos.RegistrationDtos
         public int Id { get; set; }
         public RegistrationStatus Status { get; set; }
         public string? Reason { get; set; }
-        public Grads? Grade { get; set; }
+        public Grades? Grade { get; set; }
         public CourseDto Course { get; set; } = null!;
         public StudyYearDto StudyYearDto { get; set; } = null!;
         public SemesterDto Semester { get; set; } = null!;

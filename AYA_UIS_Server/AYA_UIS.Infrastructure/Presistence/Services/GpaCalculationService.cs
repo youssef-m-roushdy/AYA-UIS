@@ -22,23 +22,23 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
         /// <summary>
         /// Get grade point value for a grade (4.0 scale)
         /// </summary>
-        public decimal GetGradePoint(Grads grade)
+        public decimal GetGradePoint(Grades grade)
         {
             return grade switch
             {
-                Grads.A_Plus => 4.0m,
-                Grads.A => 4.0m,
-                Grads.A_Minus => 3.7m,
-                Grads.B_Plus => 3.3m,
-                Grads.B => 3.0m,
-                Grads.B_Minus => 2.7m,
-                Grads.C_Plus => 2.3m,
-                Grads.C => 2.0m,
-                Grads.C_Minus => 1.7m,
-                Grads.D_Plus => 1.3m,
-                Grads.D => 1.0m,
-                Grads.D_Minus => 0.7m,
-                Grads.F => 0.0m,
+                Grades.A_Plus => 4.0m,
+                Grades.A => 4.0m,
+                Grades.A_Minus => 3.7m,
+                Grades.B_Plus => 3.3m,
+                Grades.B => 3.0m,
+                Grades.B_Minus => 2.7m,
+                Grades.C_Plus => 2.3m,
+                Grades.C => 2.0m,
+                Grades.C_Minus => 1.7m,
+                Grades.D_Plus => 1.3m,
+                Grades.D => 1.0m,
+                Grades.D_Minus => 0.7m,
+                Grades.F => 0.0m,
                 _ => 0.0m
             };
         }

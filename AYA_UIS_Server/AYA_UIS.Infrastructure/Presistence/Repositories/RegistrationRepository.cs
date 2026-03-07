@@ -3,6 +3,7 @@ using AYA_UIS.Domain.Entities.Models;
 using AYA_UIS.Domain.Enums;
 using AYA_UIS.Domain.Queries;
 using AYA_UIS.Infrastructure.Presistence.Extensions;
+using Microsoft.AspNetCore.SignalR.Protocol;
 using Microsoft.EntityFrameworkCore;
 using Presistence;
 
@@ -130,6 +131,12 @@ namespace AYA_UIS.Infrastructure.Presistence.Repositories
                 query = query.Where(r => r.Course.Code.Contains(registrationQuery.CourseCode));
             if (registrationQuery.Status.HasValue)
                 query = query.Where(r => r.Status == registrationQuery.Status.Value);
+            if (registrationQuery.IsPassed.HasValue)
+                query = query.Where(r => r.IsPassed == registrationQuery.IsPassed.Value);
+            if (registrationQuery.Progress.HasValue)                
+            query = query.Where(r => r.Progress == registrationQuery.Progress.Value);
+            if (registrationQuery.Grade.HasValue)
+                query = query.Where(r => r.Grade == registrationQuery.Grade.Value);
 
             var totalCount = await query.CountAsync(cancellationToken);
 

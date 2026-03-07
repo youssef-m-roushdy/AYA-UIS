@@ -49,7 +49,7 @@ namespace AYA_UIS.Application.Handlers.Registrations
 
             if(registration.Grade != null)
             {
-                if(registration.Grade == Grads.F)
+                if(registration.Grade == Grades.F)
                 {
                     registration.IsPassed = false;
                     registration.Progress = CourseProgress.Completed; // Completed but not passed

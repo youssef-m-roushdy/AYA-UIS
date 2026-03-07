@@ -13,5 +13,8 @@ namespace AYA_UIS.Domain.Queries
         public string? AcademicCode { get; set; }
         public string? CourseCode { get; set; }
         public RegistrationStatus? Status { get; set; }
+        public bool? IsPassed { get; set; }
+        public CourseProgress? Progress { get; set; }
+        public Grades? Grade { get; set; } 
     }
 }

@@ -10,6 +10,6 @@ namespace AYA_UIS.Application.Dtos.RegistrationDtos
     {
         public RegistrationStatus Status { get; set; }
         public string? Reason { get; set; } 
-        public Grads? Grade { get; set; }
+        public Grades? Grade { get; set; }
     }
 }

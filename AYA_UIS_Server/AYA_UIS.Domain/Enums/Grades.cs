@@ -1,6 +1,6 @@
 namespace AYA_UIS.Domain.Enums
 {
-    public enum Grads
+    public enum Grades
     {
         A_Plus,
         A,

@@ -74,6 +74,20 @@ const statusOptions = [
   { value: 'Rejected', label: 'Rejected' },
 ];
 
+const gradeOptions = [
+  { value: '', label: '— No grade —' },
+  ...Object.entries(GRADE_LABELS).map(([key, label]) => ({
+    value: key,
+    label: `${label} (${key})`,
+  })),
+];
+
+const isPassedOptions = [
+  { value: '', label: '— All —' },
+  { value: 'true', label: 'Passed' },
+  { value: 'false', label: 'Failed' },
+];
+
 const progressOptions = [
   { value: 'NotStarted', label: 'Not Started' },
   { value: 'InProgress', label: 'In Progress' },
@@ -1023,6 +1037,20 @@ const EMPTY_FILTERS = {
   AcademicCode: '',
   CourseCode: '',
   Status: '',
+  Grade: '',
+  IsPassed: '',
+  Progress: '',
+};
+
+const FILTER_LABEL_MAP = {
+  StudentUserName: 'Username',
+  CourseName: 'Course',
+  AcademicCode: 'Academic Code',
+  CourseCode: 'Course Code',
+  Status: v => v,
+  Grade: v => (GRADE_LABELS[v] ? `${GRADE_LABELS[v]} (${v})` : v),
+  IsPassed: v => (v === 'true' ? 'Passed' : 'Failed'),
+  Progress: v => PROGRESS_LABELS[v] || v,
 };
 
 const RegFilterBar = React.memo(function RegFilterBar({
@@ -1205,6 +1233,33 @@ const RegFilterBar = React.memo(function RegFilterBar({
             placeholder="All statuses"
           />
         </div>
+        <div className="fsl-full" style={fslFullWidth}>
+          <FilterSelect
+            label="Grade"
+            value={local.Grade}
+            onChange={v => handleChange('Grade', v || '')}
+            options={getGradeOptions(true)}
+            placeholder="All Grades"
+          />
+        </div>
+        <div className="fsl-full" style={fslFullWidth}>
+          <FilterSelect
+            label="Is Passed"
+            value={local.IsPassed}
+            onChange={v => handleChange('IsPassed', v || '')}
+            options={isPassedOptions}
+            placeholder="Select option"
+          />
+        </div>
+        <div className="fsl-full" style={fslFullWidth}>
+          <FilterSelect
+            label="Course Progress"
+            value={local.Progress}
+            onChange={v => handleChange('Progress', v || '')}
+            options={progressOptions}
+            placeholder="Select progress"
+          />
+        </div>
       </div>
 
       {/* Active chips */}
@@ -1225,38 +1280,43 @@ const RegFilterBar = React.memo(function RegFilterBar({
           </span>
           {Object.entries(local)
             .filter(([, v]) => v)
-            .map(([k, v]) => (
-              <span
-                key={k}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 5,
-                  padding: '3px 10px',
-                  borderRadius: 20,
-                  background: '#eef2ff',
-                  color: '#4338ca',
-                  fontSize: '12px',
-                  fontWeight: 500,
-                }}
-              >
-                {k}: "{v}"
-                <button
-                  onClick={() => handleChange(k, '')}
+            .map(([k, v]) => {
+              const labelFn = FILTER_LABEL_MAP[k];
+              const displayKey = typeof labelFn === 'string' ? labelFn : k;
+              const displayVal = typeof labelFn === 'function' ? labelFn(v) : v;
+              return (
+                <span
+                  key={k}
                   style={{
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    color: '#6366f1',
-                    padding: 0,
-                    display: 'flex',
+                    display: 'inline-flex',
                     alignItems: 'center',
+                    gap: 5,
+                    padding: '3px 10px',
+                    borderRadius: 20,
+                    background: '#eef2ff',
+                    color: '#4338ca',
+                    fontSize: '12px',
+                    fontWeight: 500,
                   }}
                 >
-                  <FiX size={11} />
-                </button>
-              </span>
-            ))}
+                  {displayKey}: "{displayVal}"
+                  <button
+                    onClick={() => handleChange(k, '')}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: '#6366f1',
+                      padding: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <FiX size={11} />
+                  </button>
+                </span>
+              );
+            })}
         </div>
       )}
     </div>
@@ -1352,6 +1412,9 @@ export default function AdminSemesterDetail() {
             AcademicCode: query.AcademicCode || undefined,
             CourseCode: query.CourseCode || undefined,
             Status: query.Status || undefined,
+            Grade: query.Grade || undefined, // ✅ add
+            IsPassed: query.IsPassed || undefined, // ✅ add
+            Progress: query.Progress || undefined, // ✅ add
           },
           page,
           regPageSizeRef.current,

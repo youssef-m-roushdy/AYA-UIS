@@ -31,6 +31,6 @@ namespace AYA_UIS.Application.Contracts
         /// <summary>
         /// Convert grade enum to numeric point value (4.0 scale)
         /// </summary>
-        decimal GetGradePoint(Grads grade);
+        decimal GetGradePoint(Grades grade);
     }
 }
