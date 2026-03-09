@@ -13,7 +13,6 @@ namespace AYA_UIS.Domain.Queries
         public Gender? Gender { get; set; }
         public Levels? Level { get; set; }
         public int? DepartmentId { get; set; }
-        public string? Specialization { get; set; }
         public decimal? MinGPA { get; set; }
         public decimal? MaxGPA { get; set; }
         public int? MinCredits { get; set; }

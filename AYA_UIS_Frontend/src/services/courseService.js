@@ -61,6 +61,14 @@ const courseService = {
   getDependencies: id => apiService.get(API_ENDPOINTS.COURSES.DEPENDENCIES(id)),
   getDeptOpenCourses: deptId =>
     apiService.get(API_ENDPOINTS.COURSES.OPEN_BY_DEPT(deptId)),
+  getStudentRegistrationCourses: (userId, studyYearId, semesterId) =>
+    apiService.get(
+      API_ENDPOINTS.COURSES.STUDENT_REGISTRATION_COURSES(
+        userId,
+        studyYearId,
+        semesterId
+      )
+    ),
 };
 
 export default courseService;

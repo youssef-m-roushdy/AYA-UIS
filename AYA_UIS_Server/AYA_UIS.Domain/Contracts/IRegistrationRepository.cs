@@ -21,5 +21,10 @@ namespace AYA_UIS.Domain.Contracts
             RegistrationQuery? registrationQuery,
             CancellationToken cancellationToken);
 
+        Task<IEnumerable<Registration>> GetStudentPassedCoursesAsync(string userId);
+       
+
+        Task<IEnumerable<Registration>> GetStudentSemesterRegistrationCoursesAsync(string userId, int studyYearId, int semesterId);
+
     }
 }

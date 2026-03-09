@@ -309,7 +309,6 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
                     TotalCredits = isStudent ? user.TotalCredits : null,
                     AllowedCredits = isStudent ? user.AllowedCredits : null,
                     TotalGPA = isStudent ? user.TotalGPA : null,
-                    Specialization = isStudent ? user.Specialization : null,
                     DepartmentId = isStudent ? user.DepartmentId : null,
                     Department = isStudent ? department!.Code : null,
                 }

@@ -168,10 +168,6 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
             if (query.MaxCredits.HasValue)
                 usersQuery = usersQuery.Where(u => u.TotalCredits <= query.MaxCredits.Value);
 
-            // Filter by Specialization
-            if (!string.IsNullOrEmpty(query.Specialization))
-                usersQuery = usersQuery.Where(u => u.Specialization.Contains(query.Specialization));
-
             // Filter by DepartmentId
             if (query.DepartmentId.HasValue)
                 usersQuery = usersQuery.Where(u => u.DepartmentId == query.DepartmentId.Value);
@@ -224,10 +220,6 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
             // Filter by Max Credits
             if (query.MaxCredits.HasValue)
                 usersQuery = usersQuery.Where(u => u.TotalCredits <= query.MaxCredits.Value);
-
-            // Filter by Specialization
-            if (!string.IsNullOrEmpty(query.Specialization))
-                usersQuery = usersQuery.Where(u => u.Specialization.Contains(query.Specialization));
 
             // Filter by DepartmentId
             if (query.DepartmentId.HasValue)
@@ -293,10 +285,6 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
             if (query.MaxCredits.HasValue)
                 usersQuery = usersQuery.Where(u => u.TotalCredits <= query.MaxCredits.Value);
 
-            // Filter by Specialization
-            if (!string.IsNullOrEmpty(query.Specialization))
-                usersQuery = usersQuery.Where(u => u.Specialization.Contains(query.Specialization));
-
             // Filter by DepartmentId
             if (query.DepartmentId.HasValue)
                 usersQuery = usersQuery.Where(u => u.DepartmentId == query.DepartmentId.Value);
@@ -350,10 +338,6 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
             if (query.MaxCredits.HasValue)
                 usersQuery = usersQuery.Where(u => u.TotalCredits <= query.MaxCredits.Value);
 
-            // Filter by Specialization
-            if (!string.IsNullOrEmpty(query.Specialization))
-                usersQuery = usersQuery.Where(u => u.Specialization.Contains(query.Specialization));
-
             // Filter by DepartmentId
             if (query.DepartmentId.HasValue)
                 usersQuery = usersQuery.Where(u => u.DepartmentId == query.DepartmentId.Value);
@@ -405,7 +389,6 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
                     TotalCredits = user.TotalCredits,
                     AllowedCredits = user.AllowedCredits,
                     TotalGPA = user.TotalGPA,
-                    Specialization = user.Specialization,
                     DepartmentName = department.Name,
                     Role = roles.FirstOrDefault(),
                     
@@ -442,26 +425,21 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
             }
         }
 
-        public async Task UpdateStudentSpecializationAsync(string academicCode, UpdateStudentSpecializationDto dto)
+        public async Task DeleteProfilePictureAsync(string userId)
         {
             try
             {
-                var user = await _userManager.Users
-                    .FirstOrDefaultAsync(u => u.AcademicCode == academicCode);
-
+                var user = await _userManager.FindByIdAsync(userId);
                 if (user == null)
-                    throw new NotFoundException($"Student with academic code '{academicCode}' not found.");
+                    throw new NotFoundException($"User with ID '{userId}' not found.");
 
-                // Validate that the user is a student
-                var roles = await _userManager.GetRolesAsync(user);
-                if (!roles.Contains("Student"))
-                {
-                    var errors = roles.Select(r => $"User does not have the required role: {r}").ToList();
-                    throw new ValidationException(errors);
-                }
+                if (string.IsNullOrEmpty(user.ProfilePicture))
+                    throw new ValidationException(new List<string> { "User does not have a profile picture to delete." });
 
-                user.Specialization = dto.Specialization;
+                // Delete the image from Cloudinary using the user ID as the public ID
+                await _cloudinaryService.DeleteImageAsync(user.Id);
 
+                user.ProfilePicture = null;
                 var result = await _userManager.UpdateAsync(user);
                 if (!result.Succeeded)
                 {
@@ -471,9 +449,8 @@ namespace AYA_UIS.Infrastructure.Presistence.Services
             }
             catch (Exception ex)
             {
-                throw new InternalServerErrorException($"An error occurred while updating the specialization for student with academic code '{academicCode}'.", ex);
+                throw new InternalServerErrorException($"An error occurred while deleting the profile picture for user ID '{userId}'.", ex);
             }
         }
-
     }
 }

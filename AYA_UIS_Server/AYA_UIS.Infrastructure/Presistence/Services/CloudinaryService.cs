@@ -138,6 +138,7 @@ public class CloudinaryService : ICloudinaryService
 
         return result.Result == "ok";
     }
+    
 
     private void ValidateFile(IFormFile file)
     {
@@ -156,6 +157,32 @@ public class CloudinaryService : ICloudinaryService
         {
             throw new ArgumentException($"File type '{extension}' is not allowed. Allowed types: {string.Join(", ", _allowedExtensions)}");
         }
+    }
+
+    private static string ExtractPublicIdFromUrl(string cloudinaryUrl)
+    {
+        // URL format: https://res.cloudinary.com/{cloud}/image/upload/v{version}/{folder}/{publicId}.{ext}
+        // We need: "{folder}/{publicId}" (without extension)
+        var uri = new Uri(cloudinaryUrl);
+        var path = uri.AbsolutePath; // e.g. /demo/image/upload/v123456/akhbaracademy/profiles/user_abc_guid.jpg
+
+        // Remove everything up to and including "/upload/"
+        var uploadIndex = path.IndexOf("/upload/", StringComparison.Ordinal);
+        if (uploadIndex < 0)
+            throw new InvalidOperationException($"Invalid Cloudinary URL format: {cloudinaryUrl}");
+
+        var afterUpload = path[(uploadIndex + 8)..]; // "v123456/akhbaracademy/profiles/user_abc_guid.jpg"
+
+        // Strip the version segment (v followed by digits)
+        if (afterUpload.StartsWith("v") && afterUpload.Contains("/"))
+        {
+            var versionEnd = afterUpload.IndexOf('/');
+            afterUpload = afterUpload[(versionEnd + 1)..]; // "akhbaracademy/profiles/user_abc_guid.jpg"
+        }
+
+        // Remove file extension
+        var dotIndex = afterUpload.LastIndexOf('.');
+        return dotIndex >= 0 ? afterUpload[..dotIndex] : afterUpload; // "akhbaracademy/profiles/user_abc_guid"
     }
 
     private void ValidateCourseFile(IFormFile file)

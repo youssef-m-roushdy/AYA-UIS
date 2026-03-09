@@ -130,5 +130,17 @@ namespace AYA_UIS.Infrastructure.Presentation.Controllers
             return Ok(result);
         }
 
+        [Authorize]
+        [HttpGet("student-registration/study-year/{studyYearId}/semester/{semesterId}")]
+        public async Task<IActionResult> GetStudentRegistrationCourses(int studyYearId, int semesterId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))                
+                return Unauthorized();
+            
+            var result = await _mediator.Send(new GetStudentRegistrationCoursesQuery(userId, studyYearId, semesterId));
+            return Ok(result);
+        }
+
     }
 }

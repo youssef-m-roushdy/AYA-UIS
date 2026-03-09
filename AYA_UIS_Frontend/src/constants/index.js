@@ -46,6 +46,8 @@ export const API_ENDPOINTS = {
     DEPENDENCIES: id => `${API_BASE}/Course/dependencies/${id}`,
     OPEN_BY_DEPT: deptId => `${API_BASE}/Course/open/department/${deptId}`,
     STATUS: `${API_BASE}/Course/status`,
+    STUDENT_REGISTRATION_COURSES: (studyYearId, semesterId) =>
+      `${API_BASE}/Course/student-registration/study-year/${studyYearId}/semester/${semesterId}`,
   },
   REGISTRATIONS: {
     BASE: `${API_BASE}/Registration`,

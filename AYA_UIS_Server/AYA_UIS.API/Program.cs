@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Presistence;
 using AYA_UIS.Application.Contracts;
 using AYA_UIS.MiddelWares;
 using Microsoft.AspNetCore.Mvc;
@@ -22,6 +21,7 @@ using AYA_UIS.Infrastructure.Presistence.Repositories;
 using AYA_UIS.Infrastructure.Presistence.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Shared.Settings;
+using AYA_UIS.Infrastructure.Presistence.Data;
 
 namespace AYA_UIS
 {

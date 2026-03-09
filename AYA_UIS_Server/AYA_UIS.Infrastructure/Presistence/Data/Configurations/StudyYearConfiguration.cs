@@ -2,7 +2,7 @@ using AYA_UIS.Domain.Entities.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Presistence.Data.Configurations
+namespace AYA_UIS.Infrastructure.Presistence.Data.Configurations
 {
     public class StudyYearConfiguration : IEntityTypeConfiguration<StudyYear>
     {

@@ -2,7 +2,7 @@ using AYA_UIS.Domain.Entities.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Presistence.Data.Configurations
+namespace AYA_UIS.Infrastructure.Presistence.Data.Configurations
 {
     public class UserStudyYearConfiguration : IEntityTypeConfiguration<UserStudyYear>
     {
@@ -20,6 +20,11 @@ namespace Presistence.Data.Configurations
 
             builder.Property(usy => usy.Level)
                    .IsRequired();
+
+            builder.HasOne(usy => usy.User)
+                   .WithMany(u => u.UserStudyYears)
+                   .HasForeignKey(usy => usy.UserId)
+                   .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(usy => usy.StudyYear)
                    .WithMany(sy => sy.UserStudyYears)

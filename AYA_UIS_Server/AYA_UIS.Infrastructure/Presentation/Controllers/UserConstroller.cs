@@ -43,18 +43,6 @@ namespace AYA_UIS.Infrastructure.Presentation.Controllers
             return Ok(new { ProfilePictureUrl = profilePictureUrl });
         }
 
-        [HttpPatch("update-student-specialization")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UpdateStudentSpecialization([FromBody] UpdateStudentSpecializationDto updateStudentSpecializationDto)
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId))
-                return Unauthorized();
-            
-            await _serviceManager.UserService.UpdateStudentSpecializationAsync(userId, updateStudentSpecializationDto);
-            return NoContent();
-        }
-
         [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery]UserQueries queries)

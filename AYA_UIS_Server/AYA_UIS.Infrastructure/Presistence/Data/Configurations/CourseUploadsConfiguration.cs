@@ -2,7 +2,7 @@ using AYA_UIS.Domain.Entities.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Presistence.Data.Configurations
+namespace AYA_UIS.Infrastructure.Presistence.Data.Configurations
 {
     public class CourseUploadsConfiguration : IEntityTypeConfiguration<CourseUpload>
     {
@@ -18,6 +18,11 @@ namespace Presistence.Data.Configurations
             builder.Property(cu => cu.UploadedByUserId)
                    .IsRequired()
                    .HasMaxLength(450);
+
+            builder.HasOne(cu => cu.UploadedBy)
+                   .WithMany(u => u.CourseUpload)
+                   .HasForeignKey(cu => cu.UploadedByUserId)
+                   .OnDelete(DeleteBehavior.Restrict);
 
             builder.Property(cu => cu.Title)
                    .IsRequired()

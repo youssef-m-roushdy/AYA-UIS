@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using AYA_UIS.Domain.Contracts;
 using AYA_UIS.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using Presistence;
 
 namespace AYA_UIS.Infrastructure.Presistence.Repositories
 {

@@ -2,40 +2,41 @@
 using AYA_UIS.Domain.Entities.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Presistence;
 using AYA_UIS.Domain.Enums;
 using AYA_UIS.Infrastructure.Presistence;
 using AYA_UIS.Domain.Contracts;
 
-public class DataSeeding : IDataSeeding
+namespace AYA_UIS.Infrastructure.Presistence.Data
 {
-    private readonly UniversityDbContext _dbContext;
-    private readonly RoleManager<Role> _roleManager;
-    private readonly UserManager<User> _userManager;
-
-    public DataSeeding(
-        UniversityDbContext dbContext,
-        RoleManager<Role> roleManager,
-        UserManager<User> userManager)
+    public class DataSeeding : IDataSeeding
     {
-        _dbContext = dbContext;
-        _roleManager = roleManager;
-        _userManager = userManager;
-    }
+        private readonly UniversityDbContext _dbContext;
+        private readonly RoleManager<Role> _roleManager;
+        private readonly UserManager<User> _userManager;
 
-    public async Task SeedDataInfoAsync()
-    {
-        try
+        public DataSeeding(
+            UniversityDbContext dbContext,
+            RoleManager<Role> roleManager,
+            UserManager<User> userManager)
         {
-            var pendingMigration = await _dbContext.Database.GetPendingMigrationsAsync();
-            if (pendingMigration.Any())
-                await _dbContext.Database.MigrateAsync();
+            _dbContext = dbContext;
+            _roleManager = roleManager;
+            _userManager = userManager;
+        }
 
-
-            // ================= Departments =================
-            if (!_dbContext.Departments.Any())
+        public async Task SeedDataInfoAsync()
+        {
+            try
             {
-                var departments = new List<Department>
+                var pendingMigration = await _dbContext.Database.GetPendingMigrationsAsync();
+                if (pendingMigration.Any())
+                    await _dbContext.Database.MigrateAsync();
+
+
+                // ================= Departments =================
+                if (!_dbContext.Departments.Any())
+                {
+                    var departments = new List<Department>
                 {
                     new() { Name = "Computer Science", Code = "CS" },
                     new() { Name = "Business English", Code = "BE" },
@@ -44,68 +45,68 @@ public class DataSeeding : IDataSeeding
                     new() { Name = "Engineering", Code = "ENG", HasPreparatoryYear = true }
                 };
 
-                await _dbContext.Departments.AddRangeAsync(departments);
-                await _dbContext.SaveChangesAsync();
-            }
-
-            // ================= Study Years (global, not per-department) =================
-            if (!_dbContext.StudyYears.Any())
-            {
-                var studyYears = new List<StudyYear>();
-
-                // Seed global calendar study years from 2018-2019 up to 2025-2026
-                for (int year = 2018; year <= 2025; year++)
-                {
-                    studyYears.Add(new StudyYear
-                    {
-                        StartYear = year,
-                        EndYear = year + 1,
-                        IsCurrent = year == 2025 // mark 2025-2026 as current
-                    });
+                    await _dbContext.Departments.AddRangeAsync(departments);
+                    await _dbContext.SaveChangesAsync();
                 }
 
-                await _dbContext.StudyYears.AddRangeAsync(studyYears);
-                await _dbContext.SaveChangesAsync();
-            }
-
-            // ================= Semesters =================
-            if (!_dbContext.Semesters.Any())
-            {
-                var allStudyYears = await _dbContext.StudyYears.ToListAsync();
-                var semesters = new List<Semester>();
-
-                foreach (var studyYear in allStudyYears)
+                // ================= Study Years (global, not per-department) =================
+                if (!_dbContext.StudyYears.Any())
                 {
-                    // Semester1 (Fall) — Sep to Dec of StartYear
-                    semesters.Add(new Semester
-                    {
-                        Title = SemesterEnum.First_Semester,
-                        StartDate = new DateTime(studyYear.StartYear, 9, 1),
-                        EndDate = new DateTime(studyYear.StartYear, 12, 31),
-                        StudyYearId = studyYear.Id
-                    });
+                    var studyYears = new List<StudyYear>();
 
-                    // Semester2 (Spring) — Jan to May of EndYear
-                    semesters.Add(new Semester
+                    // Seed global calendar study years from 2018-2019 up to 2025-2026
+                    for (int year = 2018; year <= 2025; year++)
                     {
-                        Title = SemesterEnum.Second_Semester,
-                        StartDate = new DateTime(studyYear.EndYear, 1, 1),
-                        EndDate = new DateTime(studyYear.EndYear, 5, 31),
-                        StudyYearId = studyYear.Id
-                    });
+                        studyYears.Add(new StudyYear
+                        {
+                            StartYear = year,
+                            EndYear = year + 1,
+                            IsCurrent = year == 2025 // mark 2025-2026 as current
+                        });
+                    }
+
+                    await _dbContext.StudyYears.AddRangeAsync(studyYears);
+                    await _dbContext.SaveChangesAsync();
                 }
 
-                await _dbContext.Semesters.AddRangeAsync(semesters);
-                await _dbContext.SaveChangesAsync();
-            }
-
-            // ================= Courses =================
-            if (!_dbContext.Courses.Any())
-            {
-                var csDepartment = await _dbContext.Departments.FirstOrDefaultAsync(d => d.Code == "CS");
-                if (csDepartment != null)
+                // ================= Semesters =================
+                if (!_dbContext.Semesters.Any())
                 {
-                    var courses = new List<Course>
+                    var allStudyYears = await _dbContext.StudyYears.ToListAsync();
+                    var semesters = new List<Semester>();
+
+                    foreach (var studyYear in allStudyYears)
+                    {
+                        // Semester1 (Fall) — Sep to Dec of StartYear
+                        semesters.Add(new Semester
+                        {
+                            Title = SemesterEnum.First_Semester,
+                            StartDate = new DateTime(studyYear.StartYear, 9, 1),
+                            EndDate = new DateTime(studyYear.StartYear, 12, 31),
+                            StudyYearId = studyYear.Id
+                        });
+
+                        // Semester2 (Spring) — Jan to May of EndYear
+                        semesters.Add(new Semester
+                        {
+                            Title = SemesterEnum.Second_Semester,
+                            StartDate = new DateTime(studyYear.EndYear, 1, 1),
+                            EndDate = new DateTime(studyYear.EndYear, 5, 31),
+                            StudyYearId = studyYear.Id
+                        });
+                    }
+
+                    await _dbContext.Semesters.AddRangeAsync(semesters);
+                    await _dbContext.SaveChangesAsync();
+                }
+
+                // ================= Courses =================
+                if (!_dbContext.Courses.Any())
+                {
+                    var csDepartment = await _dbContext.Departments.FirstOrDefaultAsync(d => d.Code == "CS");
+                    if (csDepartment != null)
+                    {
+                        var courses = new List<Course>
                     {
                         // Year 1
                         new Course { Code = "CS101", Name = "Introduction to Computer Science", Credits = 3, DepartmentId = csDepartment.Id },
@@ -177,24 +178,24 @@ public class DataSeeding : IDataSeeding
                         new Course { Code = "CS525", Name = "Edge Computing", Credits = 3, DepartmentId = csDepartment.Id }
                     };
 
-                    await _dbContext.Courses.AddRangeAsync(courses);
-                    await _dbContext.SaveChangesAsync();
+                        await _dbContext.Courses.AddRangeAsync(courses);
+                        await _dbContext.SaveChangesAsync();
+                    }
                 }
-            }
 
-            // ================= Course Prerequisites =================
-            if (!_dbContext.CoursePrerequisites.Any())
-            {
-                var csDepartment = await _dbContext.Departments.FirstOrDefaultAsync(d => d.Code == "CS");
-                if (csDepartment != null)
+                // ================= Course Prerequisites =================
+                if (!_dbContext.CoursePrerequisites.Any())
                 {
-                    var courses = await _dbContext.Courses.Where(c => c.DepartmentId == csDepartment.Id).ToDictionaryAsync(c => c.Code, c => c.Id);
-                    
-                    var prerequisites = new List<CoursePrerequisite>();
-                    
-                    // Only add prerequisites for courses that exist in the database
-                    var prerequisiteDefinitions = new[]
+                    var csDepartment = await _dbContext.Departments.FirstOrDefaultAsync(d => d.Code == "CS");
+                    if (csDepartment != null)
                     {
+                        var courses = await _dbContext.Courses.Where(c => c.DepartmentId == csDepartment.Id).ToDictionaryAsync(c => c.Code, c => c.Id);
+
+                        var prerequisites = new List<CoursePrerequisite>();
+
+                        // Only add prerequisites for courses that exist in the database
+                        var prerequisiteDefinitions = new[]
+                        {
                         new { CourseCode = "CS103", PrereqCode = "CS102" },
                         new { CourseCode = "CS201", PrereqCode = "CS103" },
                         new { CourseCode = "CS202", PrereqCode = "CS201" },
@@ -219,73 +220,74 @@ public class DataSeeding : IDataSeeding
                         new { CourseCode = "CS522", PrereqCode = "CS204" }
                     };
 
-                    foreach (var prereq in prerequisiteDefinitions)
-                    {
-                        if (courses.ContainsKey(prereq.CourseCode) && courses.ContainsKey(prereq.PrereqCode))
+                        foreach (var prereq in prerequisiteDefinitions)
                         {
-                            prerequisites.Add(new CoursePrerequisite 
-                            { 
-                                CourseId = courses[prereq.CourseCode], 
-                                PrerequisiteCourseId = courses[prereq.PrereqCode] 
-                            });
+                            if (courses.ContainsKey(prereq.CourseCode) && courses.ContainsKey(prereq.PrereqCode))
+                            {
+                                prerequisites.Add(new CoursePrerequisite
+                                {
+                                    CourseId = courses[prereq.CourseCode],
+                                    PrerequisiteCourseId = courses[prereq.PrereqCode]
+                                });
+                            }
                         }
-                    }
 
-                    if (prerequisites.Any())
-                    {
-                        await _dbContext.CoursePrerequisites.AddRangeAsync(prerequisites);
-                        await _dbContext.SaveChangesAsync();
+                        if (prerequisites.Any())
+                        {
+                            await _dbContext.CoursePrerequisites.AddRangeAsync(prerequisites);
+                            await _dbContext.SaveChangesAsync();
+                        }
                     }
                 }
             }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine("Seeder Error: " + ex.Message);
-            throw; // optional: عشان يظهر full exception
-        }
-    }
-
-    public async Task SeedIdentityDataAsync()
-    {
-        // Ensure database is migrated
-        var pendingMigrations = await _dbContext.Database.GetPendingMigrationsAsync();
-        if (pendingMigrations.Any())
-            await _dbContext.Database.MigrateAsync();
-
-        // Seed roles
-        string[] roleNames = { "Admin", "Instructor", "Student" };
-        foreach (var roleName in roleNames)
-        {
-            if (!await _roleManager.RoleExistsAsync(roleName))
+            catch (Exception ex)
             {
-                var role = new Role { Name = roleName };
-                await _roleManager.CreateAsync(role);
+                Console.WriteLine("Seeder Error: " + ex.Message);
+                throw; // optional: عشان يظهر full exception
             }
         }
 
-        // Seed admin user if no users exist
-        if (!_userManager.Users.Any())
+        public async Task SeedIdentityDataAsync()
         {
-            var adminUser = new User()
+            // Ensure database is migrated
+            var pendingMigrations = await _dbContext.Database.GetPendingMigrationsAsync();
+            if (pendingMigrations.Any())
+                await _dbContext.Database.MigrateAsync();
+
+            // Seed roles
+            string[] roleNames = { "Admin", "Instructor", "Student" };
+            foreach (var roleName in roleNames)
             {
-                DisplayName = "Admin User",
-                Email = "admin@akhbaracademy.com",
-                UserName = "Admin123",
-                PhoneNumber = "0123456789",
-                AcademicCode = "220500",
-                Level = null,
-                Specialization = null,
-                TotalCredits = null,
-                DepartmentId = null,
-                AllowedCredits = null,
-            };
-            
-            var result = await _userManager.CreateAsync(adminUser, "Admin@123");
-            
-            if (result.Succeeded)
+                if (!await _roleManager.RoleExistsAsync(roleName))
+                {
+                    var role = new Role { Name = roleName };
+                    await _roleManager.CreateAsync(role);
+                }
+            }
+
+            // Seed admin user if no users exist
+            if (!_userManager.Users.Any())
             {
-                await _userManager.AddToRoleAsync(adminUser, "Admin");
+                var adminUser = new User()
+                {
+                    DisplayName = "Admin User",
+                    Email = "admin@akhbaracademy.com",
+                    UserName = "Admin123",
+                    PhoneNumber = "0123456789",
+                    AcademicCode = "220500",
+                    Level = null,
+                    Specialization = null,
+                    TotalCredits = null,
+                    DepartmentId = null,
+                    AllowedCredits = null,
+                };
+
+                var result = await _userManager.CreateAsync(adminUser, "Admin@123");
+
+                if (result.Succeeded)
+                {
+                    await _userManager.AddToRoleAsync(adminUser, "Admin");
+                }
             }
         }
     }

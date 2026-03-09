@@ -5,7 +5,6 @@ using AYA_UIS.Domain.Queries;
 using AYA_UIS.Infrastructure.Presistence.Extensions;
 using Microsoft.AspNetCore.SignalR.Protocol;
 using Microsoft.EntityFrameworkCore;
-using Presistence;
 
 namespace AYA_UIS.Infrastructure.Presistence.Repositories
 {
@@ -133,8 +132,8 @@ namespace AYA_UIS.Infrastructure.Presistence.Repositories
                 query = query.Where(r => r.Status == registrationQuery.Status.Value);
             if (registrationQuery.IsPassed.HasValue)
                 query = query.Where(r => r.IsPassed == registrationQuery.IsPassed.Value);
-            if (registrationQuery.Progress.HasValue)                
-            query = query.Where(r => r.Progress == registrationQuery.Progress.Value);
+            if (registrationQuery.Progress.HasValue)
+                query = query.Where(r => r.Progress == registrationQuery.Progress.Value);
             if (registrationQuery.Grade.HasValue)
                 query = query.Where(r => r.Grade == registrationQuery.Grade.Value);
 
@@ -146,5 +145,29 @@ namespace AYA_UIS.Infrastructure.Presistence.Repositories
 
             return (result, totalCount);
         }
+
+        public async Task<IEnumerable<Registration>> GetStudentPassedCoursesAsync(string userId)
+        {
+            return await _dbContext.Registrations
+                .Where(r => r.UserId == userId && r.IsPassed)
+                .Include(r => r.Course)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Registration>> GetStudentSemesterRegistrationCoursesAsync(
+            string userId, int studyYearId, int semesterId)
+        {
+            return await _dbContext.Registrations
+                .Where(r => r.UserId == userId
+                         && r.StudyYearId == studyYearId
+                         && r.SemesterId == semesterId
+                        )
+                .Include(r => r.Course)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+
     }
 }

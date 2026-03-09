@@ -1,7 +1,6 @@
 using AYA_UIS.Domain.Contracts;
 using AYA_UIS.Domain.Entities.Models;
 using Microsoft.EntityFrameworkCore;
-using Presistence;
 
 namespace AYA_UIS.Infrastructure.Presistence.Repositories
 {

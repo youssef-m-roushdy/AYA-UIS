@@ -1,9 +1,8 @@
 using AYA_UIS.Domain.Entities.Models;
-using AYA_UIS.Domain.Entities.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Presistence.Data.Configurations
+namespace AYA_UIS.Infrastructure.Presistence.Data.Configurations
 {
     public class AcademicScheduleConfiguration : IEntityTypeConfiguration<AcademicSchedule>
     {
@@ -20,8 +19,7 @@ namespace Presistence.Data.Configurations
             builder.HasOne(a => a.UploadedBy)
                    .WithMany(u => u.AcademicSchedules)
                    .HasForeignKey(a => a.UploadedByUserId)
-                   .OnDelete(DeleteBehavior.Restrict)
-                   .IsRequired(false);
+                   .OnDelete(DeleteBehavior.Restrict);
 
             builder.Property(a => a.UploadedByUserId)
                    .IsRequired()

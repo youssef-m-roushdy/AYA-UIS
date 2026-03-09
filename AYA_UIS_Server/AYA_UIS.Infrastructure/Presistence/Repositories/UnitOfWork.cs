@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 using AYA_UIS.Domain.Contracts;
 using AYA_UIS.Domain.Entities;
-using Presistence;
 
 namespace AYA_UIS.Infrastructure.Presistence.Repositories
 {

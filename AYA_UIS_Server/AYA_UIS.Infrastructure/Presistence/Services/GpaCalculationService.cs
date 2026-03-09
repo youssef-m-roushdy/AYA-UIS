@@ -6,7 +6,6 @@ using AYA_UIS.Application.Contracts;
 using AYA_UIS.Domain.Entities.Models;
 using AYA_UIS.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
-using Presistence;
 
 namespace AYA_UIS.Infrastructure.Presistence.Services
 {

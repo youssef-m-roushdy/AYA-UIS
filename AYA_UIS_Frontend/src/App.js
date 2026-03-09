@@ -27,7 +27,7 @@ import MyStudyYears from './pages/student/MyStudyYears';
 import DepartmentCourses from './pages/student/DepartmentCourses';
 import StudentSemesterDetails from './pages/student/StudentSemesterDetails';
 import CourseUploads from './pages/student/CourseUploads';
-import StudyYearSemesters from './pages/student/StudyYearSemesters';
+import StudentStudyYearDetails from './pages/student/StudentStudyYearDetails';
 import ChangePassword from './pages/student/ChangePassword';
 // Auth pages
 import ForgotPassword from './pages/auth/ForgotPassword';
@@ -177,7 +177,7 @@ function App() {
               path="student/study-year/:studyYearId/semesters"
               element={
                 <ProtectedRoute roles={['Student']}>
-                  <StudyYearSemesters />
+                  <StudentStudyYearDetails />
                 </ProtectedRoute>
               }
             />

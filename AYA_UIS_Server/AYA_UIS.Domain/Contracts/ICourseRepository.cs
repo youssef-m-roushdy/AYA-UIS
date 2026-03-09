@@ -16,5 +16,8 @@ namespace AYA_UIS.Domain.Contracts
         Task<IEnumerable<Course>> GetPassedCoursesByUserAsync(string userId);
         Task<IEnumerable<Course>> GetOpenCoursesAsync();
         Task UpdateCourseStatusAsync(int courseId, CourseStatus newStatus);
+        Task<IEnumerable<Course>> GetAllPrerequisitesForOpenCoursesAsync();
+        Task<IEnumerable<CoursePrerequisite>> GetCoursePrerequisiteMappingsForOpenCoursesAsync();
     }
 }
+

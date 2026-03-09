@@ -11,12 +11,15 @@ namespace AYA_UIS.Domain.Entities.Models
         public string Code { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
         public int Credits { get; set; }
-        public int DepartmentId { get; set; }
         public CourseStatus Status { get; set; }
+        public int DepartmentId { get; set; }
         public Department Department { get; set; } = null!;
+
         public ICollection<Registration> Registrations { get; set; } = new List<Registration>();
         public ICollection<CourseUpload> CourseUpload { get; set; } = new List<CourseUpload>();
         public ICollection<CoursePrerequisite> PrerequisiteFor { get; set; } = new List<CoursePrerequisite>();
         public ICollection<CoursePrerequisite> DependentCourses { get; set; } = new List<CoursePrerequisite>();
+        public ICollection<DepartmentCourse> DepartmentCourses { get; set; } = new List<DepartmentCourse>();
+        public ICollection<SpecializationCourse> SpecializationCourses { get; set; } = new List<SpecializationCourse>();
     }
 }

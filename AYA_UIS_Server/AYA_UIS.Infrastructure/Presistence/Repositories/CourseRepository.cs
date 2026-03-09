@@ -5,7 +5,6 @@ using AYA_UIS.Domain.Queries;
 using AYA_UIS.Shared.Exceptions;
 using AYA_UIS.Infrastructure.Presistence.Extensions;
 using Microsoft.EntityFrameworkCore;
-using Presistence;
 
 namespace AYA_UIS.Infrastructure.Presistence.Repositories
 {
@@ -157,6 +156,25 @@ namespace AYA_UIS.Infrastructure.Presistence.Repositories
             await _dbContext.Courses
                 .Where(c => c.Id == courseId)
                 .ExecuteUpdateAsync(s => s.SetProperty(c => c.Status, newStatus));
+        }
+
+        public async Task<IEnumerable<Course>> GetAllPrerequisitesForOpenCoursesAsync()
+        {
+            return await _dbContext.CoursePrerequisites
+                .Where(cp => cp.Course.Status == CourseStatus.Opened)
+                .Include(cp => cp.PrerequisiteCourse)
+                .Select(cp => cp.PrerequisiteCourse)
+                .Distinct()
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<CoursePrerequisite>> GetCoursePrerequisiteMappingsForOpenCoursesAsync()
+        {
+            return await _dbContext.CoursePrerequisites
+                .Where(cp => cp.Course.Status == CourseStatus.Opened)
+                .Include(cp => cp.PrerequisiteCourse)
+                .AsNoTracking()
+                .ToListAsync();
         }
 
     }

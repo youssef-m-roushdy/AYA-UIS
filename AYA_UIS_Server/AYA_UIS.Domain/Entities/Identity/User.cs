@@ -20,7 +20,6 @@ namespace AYA_UIS.Domain.Entities.Identity
         public int? AllowedCredits { get; set; } // the total credits updated every semester depend on gpa and the level of the student
         public decimal? TotalGPA { get; set; } // the gpa of the student updated every semester
         // if he study eng will prep year any other will start from first year second year he choose his specialization and the department will be the one of the specialization
-        public string? Specialization { get; set; } // e.g., Computer Science, Information Systems, etc.
         public int? DepartmentId { get; set; }
         public Department? Department { get; set; }
         public ICollection<Registration> Registrations { get; set; } = new List<Registration>();
@@ -30,5 +29,8 @@ namespace AYA_UIS.Domain.Entities.Identity
         public ICollection<UserStudyYear> UserStudyYears { get; set; } = new List<UserStudyYear>(); 
         public ICollection<UserRole> UserRoles { get; set; }
         public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
+        // user related to specialization through department and might be null if the user is in prep year or the user is in a department that doesn't have specializations
+        public int? SpecializationId { get; set; }
+        public Specialization? Specialization { get; set; }
     }
 }

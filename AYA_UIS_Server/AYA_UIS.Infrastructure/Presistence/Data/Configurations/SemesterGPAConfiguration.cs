@@ -2,7 +2,7 @@ using AYA_UIS.Domain.Entities.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Presistence.Data.Configurations
+namespace AYA_UIS.Infrastructure.Presistence.Data.Configurations
 {
     public class SemesterGPAConfiguration : IEntityTypeConfiguration<SemesterGPA>
     {
@@ -17,6 +17,11 @@ namespace Presistence.Data.Configurations
             builder.Property(g => g.UserId)
                    .IsRequired()
                    .HasMaxLength(450);
+
+            builder.HasOne(g => g.User)
+                   .WithMany(u => u.SemesterGPAs)
+                   .HasForeignKey(g => g.UserId)
+                   .OnDelete(DeleteBehavior.Restrict);
 
             builder.Property(g => g.GPA)
                    .HasPrecision(4, 2); // e.g., 4.00

@@ -1,8 +1,6 @@
 using System.Reflection;
 using AYA_UIS.Domain.Entities.Identity;
 using AYA_UIS.Domain.Entities.Models;
-using AYA_UIS.Domain.Entities.Identity;
-using AYA_UIS.Domain.Entities.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -39,6 +37,9 @@ namespace AYA_UIS.Infrastructure.Presistence
                    .IsUnique();
         }
 
+        // Identity
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
+
         // Domain tables
         public DbSet<Department> Departments { get; set; }
         public DbSet<StudyYear> StudyYears { get; set; }
@@ -51,5 +52,8 @@ namespace AYA_UIS.Infrastructure.Presistence
         public DbSet<CourseUpload> CourseUploads { get; set; }
         public DbSet<SemesterGPA> SemesterGPAs { get; set; }
         public DbSet<UserStudyYear> UserStudyYears { get; set; }
+        public DbSet<Specialization> Specializations { get; set; }
+        public DbSet<SpecializationCourse> SpecializationCourses { get; set; }
+        public DbSet<DepartmentCourse> DepartmentCourses { get; set; }
     }
 }

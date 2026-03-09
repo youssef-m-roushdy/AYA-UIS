@@ -277,7 +277,11 @@ function RegisterTab({ studyYearId, semesterId, registeredCourses }) {
     const load = async () => {
       setLoading(true);
       try {
-        const res = await courseService.getDeptOpenCourses(departmentId);
+        const res = await courseService.getStudentRegistrationCourses(
+          studyYearId,
+          semesterId
+        );
+        console.log('Fetched open courses for registration:', res);
         if (!cancelled) setOpenCourses(res?.data || res || []);
       } catch {
         if (!cancelled) toast.error('Failed to load open courses');

@@ -20,7 +20,7 @@ const SEMESTER_LABELS = {
 
 const FEE_TYPE_LABELS = { Academic: 'Academic', Registration: 'Registration' };
 
-export default function StudyYearSemesters() {
+export default function StudentStudyYearDetails() {
   const { studyYearId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
